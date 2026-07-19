@@ -19,5 +19,35 @@
     "peakHoursCol": "online_hours",
     "hasPeaks": true,
     "rewardAmount": 0
+  },
+  "Qing": {
+    "name": "2026年4月青岛2500元分2个月发放",
+    "code": "Qing",
+    "city": "qingdao",
+    "type": "multi_phase",
+    "rewardAmount": 2500,
+    "fullDayHoursCol": "online_hours",
+    "peakHoursCol": "online_hours",
+    "hasPeaks": false,
+    "year": 2026,
+    "months": [],
+    "referrerType": "内推",
+    "stations": [],
+    "phases": [
+      {
+        "validDays": 26,
+        "totalOrders": 700,
+        "dailyOrders": 5,
+        "dailyHours": 8,
+        "reward": 1250
+      },
+      {
+        "validDays": 26,
+        "totalOrders": 900,
+        "dailyOrders": 5,
+        "dailyHours": 8,
+        "reward": 1250
+      }
+    ]
   }
 }
