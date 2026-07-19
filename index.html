@@ -171,6 +171,7 @@
     // ============================================================
     const POLICIES = {
         qingdao: { name:'2026年3月-青岛-入职无忧-全站点', code:'qingdao', city:'qingdao', year:2026, months:[3], stations:[], referrerType:'all', type:'single', validDaysRequired:26, totalDaysRequired:30, minDailyOrders:20, minOnlineHours:8, lunchMinHours:2.5, lunchMinOrders:4, dinnerMinHours:2, fullDayHoursCol:'valid_online_hours', peakHoursCol:'online_hours', hasPeaks:true, rewardAmount:0 },
+        qingdao_2500_2: { name:'2026年-青岛-2500元-全站点(2期:1500+1000)', code:'qingdao_2500_2', city:'qingdao', year:2026, months:[3,4,5,6,7,8,9,10,11,12], stations:[], referrerType:'all', type:'multi_phase', phases:[{validDays:26,totalOrders:700,dailyOrders:16,dailyHours:6.5,reward:1500},{validDays:26,totalOrders:900,dailyOrders:16,dailyHours:6.5,reward:1000}], fullDayHoursCol:'online_hours', peakHoursCol:'online_hours', hasPeaks:false, rewardAmount:2500 },
         may_hr_1300: { name:'2026年4月-潍坊-中介1300-全站点(2期:1000+300)', code:'may_hr_1300', city:'weifang', year:2026, months:[4], stations:[], referrerType:'中介', type:'multi_phase', phases:[{validDays:26,totalOrders:700,dailyOrders:16,dailyHours:6.5,reward:1000},{validDays:27,totalOrders:900,dailyOrders:16,dailyHours:6.5,reward:300}], fullDayHoursCol:'online_hours', peakHoursCol:'online_hours', hasPeaks:false, rewardAmount:1300 },
         june_hr_1300: { name:'2026年5月起-潍坊-中介1300-全站点(2期:1000+300)', code:'june_hr_1300', city:'weifang', year:2026, months:[5,6,7,8,9,10,11,12], stations:[], referrerType:'中介', type:'multi_phase', phases:[{validDays:26,totalOrders:700,dailyOrders:18,dailyHours:6.5,reward:1000},{validDays:27,totalOrders:900,dailyOrders:18,dailyHours:6.5,reward:300}], fullDayHoursCol:'online_hours', peakHoursCol:'online_hours', hasPeaks:false, rewardAmount:1300 },
         may_neitui_2000: { name:'2026年4月-潍坊-内推2000-全站点(一次性)', code:'may_neitui_2000', city:'weifang', year:2026, months:[4], stations:[], referrerType:'内推', type:'single', validDaysRequired:26, totalDaysRequired:30, minDailyOrders:25, minOnlineHours:7, totalOrdersRequired:900, fullDayHoursCol:'online_hours', peakHoursCol:'online_hours', hasPeaks:false, rewardAmount:2000 },
@@ -238,10 +239,35 @@
 
     function onCityChange() {
         currentCity = document.getElementById('citySelector').value;
-        const policies = CITY_POLICIES[currentCity];
-        const policyNames = policies.map(code => POLICIES[code] ? POLICIES[code].name.replace('潍坊-','').replace('青岛-','').replace('上海-','') : code);
+        const policies = CITY_POLICIES[currentCity]||[];
+        const policyNames = policies.map(code => POLICIES[code] ? POLICIES[code].name.replace(/^(20\d{2}年[^-]*-|)/,'') : code);
         document.getElementById('cityPolicyHint').textContent = policyNames.length > 0 ? `当前城市政策：${policyNames.join('、')}` : `当前城市暂无政策，请上传政策文件`;
         console.log('[城市] 切换到', CITY_NAMES[currentCity]||currentCity, '，可用政策:', policyNames.join(', '));
+    }
+
+    // 动态更新城市选择器（从所有政策中提取城市）
+    function refreshCitySelector(){
+        const sel=document.getElementById('citySelector');
+        const currentVal=sel.value;
+        // 收集所有政策中的城市
+        const cities=new Set();
+        for(const[code,policy]of Object.entries(POLICIES)){
+            if(policy.city) cities.add(policy.city);
+        }
+        // 也包含CITY_NAMES中定义的城市
+        for(const code of Object.keys(CITY_NAMES)) cities.add(code);
+        // 重建选项
+        sel.innerHTML='';
+        for(const cityCode of cities){
+            const opt=document.createElement('option');
+            opt.value=cityCode;
+            opt.textContent=CITY_NAMES[cityCode]||cityCode;
+            sel.appendChild(opt);
+        }
+        if(currentVal&&sel.querySelector(`option[value="${currentVal}"]`)){
+            sel.value=currentVal;
+        }
+        onCityChange();
     }
 
     function addNewCity() {
@@ -262,6 +288,7 @@
         onCityChange();
         showSuccess('城市"' + name + '"已添加');
         saveCities();
+        refreshCitySelector();
     }
 
     // ============================================================
@@ -326,6 +353,7 @@
 
     // Load saved policies on startup
     loadSavedPolicies();
+    refreshCitySelector();
     refreshPolicyList();
 
     function refreshPolicyList(){
