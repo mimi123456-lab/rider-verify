@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -54,7 +54,7 @@
     </style>
 </head>
 <body>
-    <div class="header">骑手政策核实工具 v3 · 多城市适配 <span style="font-size:12px;font-weight:400;opacity:0.7;margin-left:8px;">build 20260714</span></div>
+    <div class="header">骑手政策核实工具 v3 · 多城市适配 <span style="font-size:12px;font-weight:400;opacity:0.7;margin-left:8px;">build 20260719</span></div>
     <div class="container">
         <!-- City Selector -->
         <div class="section" style="padding:16px 24px;">
@@ -75,6 +75,7 @@
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
                 <label style="font-size:14px;font-weight:600;color:#1a1a2e;">当前政策管理</label>
                 <button class="btn-export" style="margin:0;padding:4px 12px;font-size:11px;" onclick="refreshPolicyList()">刷新列表</button>
+                <button class="btn-export" style="margin:0;padding:4px 12px;font-size:11px;background:#1a73e8;color:#fff;border-color:#1a73e8;" onclick="exportPoliciesJSON()" title="合并上传当前政策到云端，不会覆盖他人的政策">发布到云端</button>
             </div>
             <div id="policyList" style="font-size:12px;color:#666;"></div>
         </div>
@@ -228,6 +229,40 @@
         shanghai: []
     };
     const CITY_NAMES = { qingdao: '青岛', weifang: '潍坊', shanghai: '上海' };
+    let REMOTE_POLICY_CODES = new Set(); // 远程 policies.json 中的政策 code，用于区分内置/自定义
+
+    /**
+     * 从远程 policies.json 加载政策，与内置 POLICIES 合并
+     */
+    async function loadRemotePolicies() {
+        try {
+            const resp = await fetch('policies.json?t=' + Date.now());
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const remote = await resp.json();
+            REMOTE_POLICY_CODES = new Set(Object.keys(remote));
+            let loadedCount = 0;
+            for (const [code, policy] of Object.entries(remote)) {
+                POLICIES[code] = policy;
+                // 更新城市政策映射
+                if (policy.city && !CITY_POLICIES[policy.city]) CITY_POLICIES[policy.city] = [];
+                if (policy.city && !CITY_POLICIES[policy.city].includes(code)) {
+                    CITY_POLICIES[policy.city].push(code);
+                }
+                // 更新城市名称
+                if (policy.city && !CITY_NAMES[policy.city]) {
+                    // 尝试从已知城市名推断
+                    const knownCities = {qingdao:'青岛',weifang:'潍坊',shanghai:'上海'};
+                    CITY_NAMES[policy.city] = knownCities[policy.city] || policy.city;
+                }
+                loadedCount++;
+            }
+            console.log('[政策] 已加载远程', loadedCount, '套政策，codes:', [...REMOTE_POLICY_CODES].join(','));
+        } catch(e) {
+            console.warn('[政策] 远程加载失败，使用内置政策:', e.message);
+            // 远程加载失败时，以内置硬编码的 code 作为 REMOTE_POLICY_CODES
+            REMOTE_POLICY_CODES = new Set(Object.keys(POLICIES));
+        }
+    }
 
     // ============================================================
     // Global State
@@ -332,9 +367,8 @@
     function savePolicies() {
         try {
             const custom = {};
-            const builtIn = ['qingdao','may_hr_1300','june_hr_1300','may_neitui_2000','june_neitui_2000','april_parttime_3000','default'];
             for (const [code, policy] of Object.entries(POLICIES)) {
-                if (!builtIn.includes(code)) custom[code] = policy;
+                if (!REMOTE_POLICY_CODES.has(code)) custom[code] = policy;
             }
             localStorage.setItem('rider_policies', JSON.stringify(custom));
         } catch (e) { console.warn('[政策] 保存失败:', e); }
@@ -351,10 +385,13 @@
         } catch (e) { console.warn('[城市] 保存失败:', e); }
     }
 
-    // Load saved policies on startup
-    loadSavedPolicies();
-    refreshCitySelector();
-    refreshPolicyList();
+    // Load saved policies on startup (async: remote first, then local)
+    (async function init() {
+        await loadRemotePolicies();
+        loadSavedPolicies();
+        refreshCitySelector();
+        refreshPolicyList();
+    })();
 
     function refreshPolicyList(){
         const container=document.getElementById('policyList');
@@ -374,7 +411,7 @@
             const typeText=policy.type==='multi_phase'?`多期(${policy.phases?policy.phases.length:0}期)`:'单期';
             const refText=policy.referrerType&&policy.referrerType!=='all'?` [${policy.referrerType}]`:'';
             const monthText=policy.months&&policy.months.length?` ${policy.months.join('/')}月`:'';
-            const isBuiltIn=['qingdao','may_hr_1300','june_hr_1300','may_neitui_2000','june_neitui_2000','april_parttime_3000','default'].includes(code);
+            const isBuiltIn=REMOTE_POLICY_CODES.has(code);
             html+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0f0f0;">
                 <span style="flex:1;"><b>${policy.name}</b><span style="color:#666;font-size:11px;">${refText}${monthText}</span> <span style="color:#999;">[${code}]</span> ${cityName} ${typeText} ¥${policy.rewardAmount||0}</span>
                 <button onclick="editPolicy('${code}')" style="padding:2px 10px;background:#4f46e5;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;">编辑</button>
@@ -382,6 +419,60 @@
             </div>`;
         }
         container.innerHTML=html||'暂无政策';
+    }
+
+    function exportPoliciesJSON(){
+        // 合并上传：先获取远程现有政策，再与本地 POLICIES 合并后上传，不会覆盖他人的政策
+        let token=localStorage.getItem('gh_sync_token');
+        if(!token){
+            token=prompt('首次使用需输入 GitHub Token（仅需输入一次）：\n\n获取方式：GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)\n勾选 repo 权限即可。');
+            if(!token||token.length<10){showError('Token 无效，已取消');return;}
+            localStorage.setItem('gh_sync_token',token);
+        }
+        const owner='mimi123456-lab';
+        const repo='rider-verify';
+        const path='policies.json';
+        const apiUrl='https://api.github.com/repos/'+owner+'/'+repo+'/contents/'+path;
+        const headers={
+            'Authorization':'token '+token,
+            'Accept':'application/vnd.github.v3+json',
+            'Content-Type':'application/json'
+        };
+
+        // 先获取远程当前版本
+        fetch(apiUrl,{headers}).then(r=>{
+            if(!r.ok) throw new Error('获取远程文件失败: '+r.status);
+            return r.json();
+        }).then(data=>{
+            // 合并：远程为基础，本地 POLICIES 覆盖/追加
+            let remotePolicies;
+            try{
+                remotePolicies=JSON.parse(decodeURIComponent(escape(atob(data.content))));
+            }catch(e){
+                remotePolicies=JSON.parse(atob(data.content));
+            }
+            // 将本地所有政策合并到远程（本地覆盖远程同名政策，但不删除远程独有的）
+            for(const[code,policy]of Object.entries(POLICIES)){
+                remotePolicies[code]=policy;
+            }
+            const json=JSON.stringify(remotePolicies,null,2);
+            const content=btoa(unescape(encodeURIComponent(json)));
+            const body={message:'政策同步更新（合并模式）',content:content,sha:data.sha};
+            return fetch(apiUrl,{method:'PUT',headers,body:JSON.stringify(body)});
+        }).then(r=>{
+            if(!r.ok) throw new Error('上传失败: '+r.status);
+            return r.json();
+        }).then(()=>{
+            showSuccess('已发布到云端！全团队刷新页面即可看到最新政策');
+            setTimeout(()=>location.reload(),2000);
+        }).catch(e=>{
+            if(e.message==='获取远程文件失败: 401'||e.message==='上传失败: 401'){
+                localStorage.removeItem('gh_sync_token');
+                showError('Token 过期或无效，请刷新页面后重新输入');
+            }else{
+                showError('发布失败: '+e.message);
+            }
+        });
     }
 
     function editPolicy(code){
@@ -1436,6 +1527,7 @@
         // 站点和推荐人列 - 用于自动匹配政策
         const rlStationCol=findColumnIndex(rlHeaders,['站点','站点名称','station','入职站点','团队']);
         const rlReferrerTypeCol=findColumnIndex(rlHeaders,['推荐人','推荐人类型','referrer_type','内推/中介','类型']);
+        const rlCityCol=findColumnIndex(rlHeaders,['城市','city','所属城市','工作城市']);
 
         if(rlRiderIdCol<0){showError('骑手名单中未找到骑手ID列。可用列: '+riderListData[0].map(h=>toString(h)).join('、'));return;}
 
@@ -1461,9 +1553,28 @@
                     const referrerType=rlReferrerTypeCol>=0?toString(row[rlReferrerTypeCol]):'';
                     const referrerId=rlReferrerIdCol>=0?toString(row[rlReferrerIdCol]):riderId;
 
+                    // 自动检测骑手所属城市（优先级：名单"城市"列 > 站点名推断 > 当前选择城市）
+                    let riderCity=currentCity;
+                    if(rlCityCol>=0){
+                        const cityVal=toString(row[rlCityCol]).toLowerCase();
+                        for(const[ccode,cname]of Object.entries(CITY_NAMES)){
+                            if(cityVal===ccode||cityVal.includes(cname)||cname.includes(cityVal)){
+                                riderCity=ccode; break;
+                            }
+                        }
+                        if(riderCity===currentCity && cityVal) riderCity=cityVal; // 新城市直接用原始值
+                    }else if(station){
+                        const stLower=station.toLowerCase();
+                        for(const[ccode,cname]of Object.entries(CITY_NAMES)){
+                            if(stLower.includes(ccode)||stLower.includes(cname)){
+                                riderCity=ccode; break;
+                            }
+                        }
+                    }
+
                     // 1. 根据入职日期、站点、推荐人自动匹配政策
-                    let policy=matchPolicyByRider(issueDate,station,referrerType,currentCity);
-                    console.log('[核实] 骑手'+riderId+'('+name+') 入职:'+issueDate+' 站点:'+station+' 推荐人:'+referrerType+' → 匹配政策:'+policy.name);
+                    let policy=matchPolicyByRider(issueDate,station,referrerType,riderCity);
+                    console.log('[核实] 骑手'+riderId+'('+name+') 入职:'+issueDate+' 站点:'+station+' 城市:'+riderCity+' 推荐人:'+referrerType+' → 匹配政策:'+policy.name);
 
                     // 2. 从历史发放记录查该收款人已发到第几期
                     const history=getHistorySummary(referrerId);
