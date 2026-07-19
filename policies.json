@@ -49,5 +49,28 @@
         "reward": 1250
       }
     ]
+  },
+  "2026_4___zibo__________": {
+    "name": "2026年4月新骑手入职奖励（人资版）",
+    "code": "2026_4___zibo__________",
+    "city": "淄博",
+    "type": "single",
+    "rewardAmount": 1200,
+    "fullDayHoursCol": "online_hours",
+    "peakHoursCol": "online_hours",
+    "hasPeaks": false,
+    "year": 2026,
+    "months": [
+      4,
+      5,
+      6
+    ],
+    "referrerType": "中介",
+    "stations": [],
+    "validDaysRequired": 26,
+    "totalDaysRequired": 30,
+    "minDailyOrders": 16,
+    "minOnlineHours": 6.5,
+    "totalOrdersRequired": 800
   }
 }
