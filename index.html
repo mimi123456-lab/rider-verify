@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>楠戞墜鏀跨瓥鏍稿疄宸ュ叿 v3 路 鑷姩鏈熸暟璇嗗埆</title>
+    <title>骑手政策核实工具 v3 · 自动期数识别</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -54,112 +54,114 @@
     </style>
 </head>
 <body>
-    <div class="header">楠戞墜鏀跨瓥鏍稿疄宸ュ叿 v3 路 澶氬煄甯傞€傞厤 <span style="font-size:12px;font-weight:400;opacity:0.7;margin-left:8px;">build 20260714</span></div>
+    <div class="header">骑手政策核实工具 v3 · 多城市适配 <span style="font-size:12px;font-weight:400;opacity:0.7;margin-left:8px;">build 20260714</span></div>
     <div class="container">
         <!-- City Selector -->
         <div class="section" style="padding:16px 24px;">
             <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-                <label style="font-size:14px;font-weight:600;color:#1a1a2e;">閫夋嫨鍩庡競锛?/label>
+                <label style="font-size:14px;font-weight:600;color:#1a1a2e;">选择城市：</label>
                 <select id="citySelector" style="padding:8px 16px;border:1px solid #ddd;border-radius:4px;font-size:14px;min-width:160px;" onchange="onCityChange()">
-                    <option value="weifang">娼嶅潑</option>
-                    <option value="qingdao">闈掑矝</option>
-                    <option value="shanghai">涓婃捣</option>
+                    <option value="weifang">潍坊</option>
+                    <option value="qingdao">青岛</option>
+                    <option value="shanghai">上海</option>
                 </select>
-                <input type="text" id="newCityInput" placeholder="鏂板鍩庡競鍚? style="padding:6px 12px;border:1px solid #ddd;border-radius:4px;font-size:13px;width:120px;">
-                <button class="btn-export" style="margin:0;padding:6px 14px;font-size:12px;" onclick="addNewCity()">+ 娣诲姞鍩庡競</button>
-                <span id="cityPolicyHint" style="font-size:13px;color:#666;">褰撳墠鍩庡競鏀跨瓥锛氫汉璧?300銆佸唴鎺?000銆佸吋鑱岃浆鍏ㄨ亴3000</span>
+                <input type="text" id="newCityInput" placeholder="新增城市名" style="padding:6px 12px;border:1px solid #ddd;border-radius:4px;font-size:13px;width:120px;">
+                <button class="btn-export" style="margin:0;padding:6px 14px;font-size:12px;" onclick="addNewCity()">+ 添加城市</button>
+                <span id="cityPolicyHint" style="font-size:13px;color:#666;">当前城市政策：人资1300、内推2000、兼职转全职3000</span>
             </div>
         </div>
         <!-- Policy Management -->
         <div class="section" id="policyManageSection" style="padding:16px 24px;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                <label style="font-size:14px;font-weight:600;color:#1a1a2e;">褰撳墠鏀跨瓥绠＄悊</label>
-                <button class="btn-export" style="margin:0;padding:4px 12px;font-size:11px;" onclick="refreshPolicyList()">鍒锋柊鍒楄〃</button>
+                <label style="font-size:14px;font-weight:600;color:#1a1a2e;">当前政策管理</label>
+                <button class="btn-export" style="margin:0;padding:4px 12px;font-size:11px;" onclick="refreshPolicyList()">刷新列表</button>
+                <button class="btn-export" style="margin:0;padding:4px 12px;font-size:11px;background:#1a73e8;color:#fff;border-color:#1a73e8;" onclick="exportPoliciesJSON()" title="导出当前所有政策（含自定义）为 JSON，发给管理员同步到云端">发布到云端</button>
             </div>
             <div id="policyList" style="font-size:12px;color:#666;"></div>
         </div>
         <!-- Section 1: Upload Files -->
         <div class="section">
-            <div class="section-title">1. 涓婁紶鏂囦欢</div>
+            <div class="section-title">1. 上传文件</div>
             <div class="hint-text">
-                闇€瑕佷笂浼犱袱涓枃浠讹細<br>
-                鈶?<b>鑰冨嫟鏁版嵁鏂囦欢</b>锛坸lsx/csv锛夛細鍖呭惈楠戞墜姣忔棩鑰冨嫟璁板綍锛堥獞鎵婭D銆佹棩鏈熴€佹椂娈点€佸畬鍗曢噺銆佸湪绾挎椂闀跨瓑锛?br>
-                鈶?<b>楠戞墜鍚嶅崟鏂囦欢</b>锛坸lsx/csv锛夛細鍖呭惈寰呮牳瀹為獞鎵嬪垪琛紝蹇呴』鏈?b>濂栧姳澶囨敞璇存槑</b>鍒楋紙濡?鍐呮帹3鏈堝叆鑱岀涓€鏈?锛?            </div>
+                需要上传两个文件：<br>
+                ① <b>考勤数据文件</b>（xlsx/csv）：包含骑手每日考勤记录（骑手ID、日期、时段、完单量、在线时长等）<br>
+                ② <b>骑手名单文件</b>（xlsx/csv）：包含待核实骑手列表，必须有<b>奖励备注说明</b>列（如"内推3月入职第一期"）
+            </div>
             <div class="file-upload-row">
-                <label class="upload-label">閫夋嫨鑰冨嫟鏂囦欢<input type="file" id="attendanceFile" accept=".xlsx,.xls,.csv"></label>
+                <label class="upload-label">选择考勤文件<input type="file" id="attendanceFile" accept=".xlsx,.xls,.csv"></label>
                 <span id="attendanceFileName" style="font-size:13px;color:#666;"></span>
             </div>
             <div class="file-info" id="attendanceFileInfo"></div>
             <div class="file-upload-row">
-                <label class="upload-label">閫夋嫨楠戞墜鍚嶅崟鏂囦欢<input type="file" id="riderListFile" accept=".xlsx,.xls,.csv"></label>
+                <label class="upload-label">选择骑手名单文件<input type="file" id="riderListFile" accept=".xlsx,.xls,.csv"></label>
                 <span id="riderListFileName" style="font-size:13px;color:#666;"></span>
             </div>
             <div class="file-info" id="riderListInfo"></div>
             <div class="file-upload-row" style="margin-top:8px;">
-                <label class="upload-label">閫夋嫨鍘嗗彶鍙戞斁璁板綍锛堝彲閫夛級<input type="file" id="historyFile" accept=".xlsx,.xls,.csv"></label>
+                <label class="upload-label">选择历史发放记录（可选）<input type="file" id="historyFile" accept=".xlsx,.xls,.csv"></label>
                 <span id="historyFileName" style="font-size:13px;color:#666;"></span>
             </div>
-            <div class="file-info" id="historyInfo">鏈笂浼狅紙濡備笂浼犲皢鐢ㄤ簬妫€娴嬮噸澶嶅彂鏀撅級</div>
+            <div class="file-info" id="historyInfo">未上传（如上传将用于检测重复发放）</div>
             <div class="file-upload-row" style="margin-top:8px;">
-                <label class="upload-label">涓婁紶鏂版斂绛栭厤缃紙鍙閫夛級<input type="file" id="policyFile" accept=".docx,.doc,.pdf,.xlsx,.xls,.json" multiple></label>
-                <span id="policyFileName" style="font-size:13px;color:#666;">鏈€夋嫨鏂囦欢</span>
+                <label class="upload-label">上传新政策配置（可多选）<input type="file" id="policyFile" accept=".docx,.doc,.pdf,.xlsx,.xls,.json" multiple></label>
+                <span id="policyFileName" style="font-size:13px;color:#666;">未选择文件</span>
             </div>
-            <div class="file-info" id="policyFileInfo">鏈笂浼狅紙褰撳墠浣跨敤鍐呯疆鏀跨瓥锛?/div>
+            <div class="file-info" id="policyFileInfo">未上传（当前使用内置政策）</div>
         </div>
 
         <!-- Section 2: Column Mapping -->
         <div class="section">
-            <div class="section-title">2. 鍒楁槧灏勭‘璁?/div>
-            <div class="hint-text">绯荤粺浼氳嚜鍔ㄦ娴嬪垪鍚嶏紝璇风‘璁ゆ槧灏勬槸鍚︽纭€傞潚宀涗笓鐢細鍏ㄥぉ鐢ㄣ€屾湁鏁堝湪绾挎椂闀裤€嶏紝鍗堟櫄楂樺嘲鐢ㄣ€屽湪绾挎椂闀裤€嶃€?/div>
+            <div class="section-title">2. 列映射确认</div>
+            <div class="hint-text">系统会自动检测列名，请确认映射是否正确。青岛专用：全天用「有效在线时长」，午晚高峰用「在线时长」。</div>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;" id="columnMapping">
-                <div class="field"><label>楠戞墜ID</label><select id="colRiderId"><option value="">-- 璇烽€夋嫨 --</option></select></div>
-                <div class="field"><label>濮撳悕</label><select id="colName"><option value="">-- 璇烽€夋嫨 --</option></select></div>
-                <div class="field"><label>鏃ユ湡</label><select id="colDate"><option value="">-- 璇烽€夋嫨 --</option></select></div>
-                <div class="field"><label>鏃舵</label><select id="colPeriod"><option value="">-- 璇烽€夋嫨 --</option></select></div>
-                <div class="field"><label>瀹屽崟閲?/label><select id="colOrders"><option value="">-- 璇烽€夋嫨 --</option></select></div>
-                <div class="field"><label>鍏ㄥぉ鏃堕暱鍒?/label><select id="colFullDayHours"><option value="">-- 璇烽€夋嫨 --</option></select></div>
-                <div class="field"><label>鍒嗘椂娈垫椂闀垮垪</label><select id="colPeakHours"><option value="">-- 璇烽€夋嫨 --</option></select></div>
+                <div class="field"><label>骑手ID</label><select id="colRiderId"><option value="">-- 请选择 --</option></select></div>
+                <div class="field"><label>姓名</label><select id="colName"><option value="">-- 请选择 --</option></select></div>
+                <div class="field"><label>日期</label><select id="colDate"><option value="">-- 请选择 --</option></select></div>
+                <div class="field"><label>时段</label><select id="colPeriod"><option value="">-- 请选择 --</option></select></div>
+                <div class="field"><label>完单量</label><select id="colOrders"><option value="">-- 请选择 --</option></select></div>
+                <div class="field"><label>全天时长列</label><select id="colFullDayHours"><option value="">-- 请选择 --</option></select></div>
+                <div class="field"><label>分时段时长列</label><select id="colPeakHours"><option value="">-- 请选择 --</option></select></div>
             </div>
         </div>
 
         <!-- Section 3: Start Verification -->
         <div class="section">
-            <div class="section-title">3. 寮€濮嬫牳瀹?/div>
-            <button class="btn-primary" id="startVerifyBtn" onclick="startVerification()">寮€濮嬫牳瀹?/button>
+            <div class="section-title">3. 开始核实</div>
+            <button class="btn-primary" id="startVerifyBtn" onclick="startVerification()">开始核实</button>
         </div>
 
         <!-- Section 4: Results -->
         <div class="section" id="resultSection" style="display:none;">
-            <div class="section-title">4. 鏍稿疄缁撴灉</div>
+            <div class="section-title">4. 核实结果</div>
             <div class="stats-row">
-                <div class="stat-card"><div class="stat-number" id="totalCount" style="color:#1a1a2e;">0</div><div class="stat-label">鎬讳汉鏁?/div></div>
-                <div class="stat-card"><div class="stat-number" id="passCount" style="color:#28a745;">0</div><div class="stat-label">杈炬爣</div></div>
-                <div class="stat-card"><div class="stat-number" id="failCount" style="color:#dc3545;">0</div><div class="stat-label">涓嶈揪鏍?/div></div>
-                <div class="stat-card"><div class="stat-number" id="warnCount" style="color:#ff9800;">0</div><div class="stat-label">璀﹀憡/閲嶅</div></div>
+                <div class="stat-card"><div class="stat-number" id="totalCount" style="color:#1a1a2e;">0</div><div class="stat-label">总人数</div></div>
+                <div class="stat-card"><div class="stat-number" id="passCount" style="color:#28a745;">0</div><div class="stat-label">达标</div></div>
+                <div class="stat-card"><div class="stat-number" id="failCount" style="color:#dc3545;">0</div><div class="stat-label">不达标</div></div>
+                <div class="stat-card"><div class="stat-number" id="warnCount" style="color:#ff9800;">0</div><div class="stat-label">警告/重复</div></div>
             </div>
             <div class="results-table-wrapper">
                 <table class="results-table" id="resultsTable">
                     <thead>
                         <tr>
-                            <th>ID</th><th>濮撳悕</th><th>鍏ヨ亴鏃ユ湡</th><th>鍙戞斁澶囨敞</th><th>濂栧姳澶囨敞璇存槑</th>
-                            <th>鏀跨瓥</th><th>搴斿彂鏈熸暟</th><th>鍘嗗彶宸插彂鏈熸暟</th><th>鍘嗗彶鏈熸暟鏄庣粏</th>
-                            <th>姣忔棩闇€鏃?/th><th>闇€鐧惧ぉ鏁?/th><th>闇€鎬诲崟閲?/th>
-                            <th>鏈夋晥澶╂暟</th><th>鎬诲崟閲?/th><th>杈炬爣</th>
-                            <th>搴斿彂閲戦</th><th>鐘舵€?/th>
+                            <th>ID</th><th>姓名</th><th>入职日期</th><th>发放备注</th><th>奖励备注说明</th>
+                            <th>政策</th><th>应发期数</th><th>历史已发期数</th><th>历史期数明细</th>
+                            <th>每日需时</th><th>需百天数</th><th>需总单量</th>
+                            <th>有效天数</th><th>总单量</th><th>达标</th>
+                            <th>应发金额</th><th>状态</th>
                         </tr>
                     </thead>
                     <tbody id="resultsBody"></tbody>
                 </table>
             </div>
             <div style="margin-top:16px;">
-                <button class="btn-export" onclick="exportResults('xlsx')">瀵煎嚭 Excel</button>
-                <button class="btn-export" onclick="exportResults('csv')">瀵煎嚭 CSV</button>
+                <button class="btn-export" onclick="exportResults('xlsx')">导出 Excel</button>
+                <button class="btn-export" onclick="exportResults('csv')">导出 CSV</button>
             </div>
         </div>
     </div>
 
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-box"><div class="spinner"></div><div>姝ｅ湪鏍稿疄涓紝璇风◢鍊?..</div></div>
+        <div class="loading-box"><div class="spinner"></div><div>正在核实中，请稍候...</div></div>
     </div>
     <div class="toast error" id="errorToast"></div>
     <div class="toast success" id="successToast"></div>
@@ -169,29 +171,32 @@
     // Policy Definitions
     // ============================================================
     const POLICIES = {};
-    let REMOTE_POLICY_CODES = []; // 杩滅▼鏀跨瓥 code 鍒楄〃锛岀敤浜庡尯鍒嗗唴缃?鑷畾涔?
-    // 浠庤繙绋嬪姞杞藉叡浜斂绛栵紙鏇挎崲涔嬪墠鐨勭‖缂栫爜锛?    async function loadRemotePolicies() {
+    let REMOTE_POLICY_CODES = []; // 远程政策 code 列表，用于区分内置/自定义
+
+    // 从远程加载共享政策（替换之前的硬编码）
+    async function loadRemotePolicies() {
         try {
             const resp = await fetch('policies.json', { cache: 'no-cache' });
             if (resp.ok) {
                 const remotePolicies = await resp.json();
                 REMOTE_POLICY_CODES = Object.keys(remotePolicies);
                 Object.assign(POLICIES, remotePolicies);
-                console.log('[鏀跨瓥] 宸蹭粠杩滅▼鍔犺浇', REMOTE_POLICY_CODES.length, '涓叡浜斂绛?);
+                console.log('[政策] 已从远程加载', REMOTE_POLICY_CODES.length, '个共享政策');
             } else {
-                console.warn('[鏀跨瓥] 杩滅▼鍔犺浇澶辫触锛屼娇鐢ㄦ湰鍦扮紦瀛?);
+                console.warn('[政策] 远程加载失败，使用本地缓存');
             }
         } catch (e) {
-            console.warn('[鏀跨瓥] 杩滅▼鍔犺浇鍑洪敊:', e.message);
+            console.warn('[政策] 远程加载出错:', e.message);
         }
-        // 纭繚鑷冲皯鏈夐粯璁ゆ斂绛?        if (!POLICIES['default']) {
-            POLICIES['default'] = { name:'鏍囧噯鏂颁汉濂栧姳(榛樿)', code:'default', city:'weifang', year:2026, months:[], stations:[], referrerType:'all', type:'single', validDaysRequired:26, totalDaysRequired:30, minDailyOrders:20, minOnlineHours:8, lunchMinHours:2.5, lunchMinOrders:4, dinnerMinHours:2, fullDayHoursCol:'online_hours', peakHoursCol:'online_hours', hasPeaks:true, rewardAmount:0 };
+        // 确保至少有默认政策
+        if (!POLICIES['default']) {
+            POLICIES['default'] = { name:'标准新人奖励(默认)', code:'default', city:'weifang', year:2026, months:[], stations:[], referrerType:'all', type:'single', validDaysRequired:26, totalDaysRequired:30, minDailyOrders:20, minOnlineHours:8, lunchMinHours:2.5, lunchMinOrders:4, dinnerMinHours:2, fullDayHoursCol:'online_hours', peakHoursCol:'online_hours', hasPeaks:true, rewardAmount:0 };
             if (!REMOTE_POLICY_CODES.includes('default')) REMOTE_POLICY_CODES.push('default');
         }
     }
 
     /**
-     * 鏍规嵁楠戞墜鐨勫叆鑱屾棩鏈熴€佺珯鐐广€佹帹鑽愪汉绫诲瀷鑷姩鍖归厤鏀跨瓥
+     * 根据骑手的入职日期、站点、推荐人类型自动匹配政策
      */
     function matchPolicyByRider(joinDateStr, station, referrerType, city){
         const joinDate=joinDateStr?new Date(joinDateStr):null;
@@ -205,19 +210,23 @@
 
         for(const[code,policy]of Object.entries(POLICIES)){
             if(code==='default') continue;
-            // 鍩庡競鍖归厤
+            // 城市匹配
             if(policy.city&&policy.city!==city) continue;
-            // 骞翠唤鍖归厤
+            // 年份匹配
             if(policy.year&&joinYear&&policy.year!==joinYear) continue;
-            // 鏈堜唤鍖归厤锛堢┖鏁扮粍=涓嶉檺鏈堜唤锛?            if(policy.months&&policy.months.length>0&&joinMonth&&!policy.months.includes(joinMonth)) continue;
-            // 鎺ㄨ崘浜虹被鍨嬪尮閰?            if(policy.referrerType&&policy.referrerType!=='all'){
+            // 月份匹配（空数组=不限月份）
+            if(policy.months&&policy.months.length>0&&joinMonth&&!policy.months.includes(joinMonth)) continue;
+            // 推荐人类型匹配
+            if(policy.referrerType&&policy.referrerType!=='all'){
                 if(refLower&&!refLower.includes(policy.referrerType)) continue;
             }
-            // 绔欑偣鍖归厤锛堢┖鏁扮粍=涓嶉檺绔欑偣锛?            if(policy.stations&&policy.stations.length>0){
+            // 站点匹配（空数组=不限站点）
+            if(policy.stations&&policy.stations.length>0){
                 const stationMatch=policy.stations.some(s=>stationLower.includes(s.toLowerCase()));
                 if(!stationMatch) continue;
             }
-            // 璁＄畻鍖归厤鍒嗘暟锛堣秺鍏蜂綋鍒嗘暟瓒婇珮锛?            let score=1;
+            // 计算匹配分数（越具体分数越高）
+            let score=1;
             if(policy.months&&policy.months.length>0) score+=2;
             if(policy.referrerType&&policy.referrerType!=='all') score+=2;
             if(policy.stations&&policy.stations.length>0) score+=2;
@@ -233,7 +242,7 @@
         weifang: ['may_hr_1300', 'june_hr_1300', 'may_neitui_2000', 'june_neitui_2000', 'april_parttime_3000', 'default'],
         shanghai: []
     };
-    const CITY_NAMES = { qingdao: '闈掑矝', weifang: '娼嶅潑', shanghai: '涓婃捣' };
+    const CITY_NAMES = { qingdao: '青岛', weifang: '潍坊', shanghai: '上海' };
 
     // ============================================================
     // Global State
@@ -246,17 +255,17 @@
     function onCityChange() {
         currentCity = document.getElementById('citySelector').value;
         const policies = CITY_POLICIES[currentCity];
-        const policyNames = policies.map(code => POLICIES[code] ? POLICIES[code].name.replace('娼嶅潑-','').replace('闈掑矝-','').replace('涓婃捣-','') : code);
-        document.getElementById('cityPolicyHint').textContent = policyNames.length > 0 ? `褰撳墠鍩庡競鏀跨瓥锛?{policyNames.join('銆?)}` : `褰撳墠鍩庡競鏆傛棤鏀跨瓥锛岃涓婁紶鏀跨瓥鏂囦欢`;
-        console.log('[鍩庡競] 鍒囨崲鍒?, CITY_NAMES[currentCity]||currentCity, '锛屽彲鐢ㄦ斂绛?', policyNames.join(', '));
+        const policyNames = policies.map(code => POLICIES[code] ? POLICIES[code].name.replace('潍坊-','').replace('青岛-','').replace('上海-','') : code);
+        document.getElementById('cityPolicyHint').textContent = policyNames.length > 0 ? `当前城市政策：${policyNames.join('、')}` : `当前城市暂无政策，请上传政策文件`;
+        console.log('[城市] 切换到', CITY_NAMES[currentCity]||currentCity, '，可用政策:', policyNames.join(', '));
     }
 
     function addNewCity() {
         const input = document.getElementById('newCityInput');
         const name = input.value.trim();
-        if (!name) { showError('璇疯緭鍏ュ煄甯傚悕绉?); return; }
+        if (!name) { showError('请输入城市名称'); return; }
         const code = name.toLowerCase().replace(/\s+/g, '_');
-        if (CITY_POLICIES[code]) { showError('鍩庡競"' + name + '"宸插瓨鍦?); return; }
+        if (CITY_POLICIES[code]) { showError('城市"' + name + '"已存在'); return; }
         CITY_POLICIES[code] = [];
         CITY_NAMES[code] = name;
         const sel = document.getElementById('citySelector');
@@ -267,7 +276,7 @@
         sel.value = code;
         input.value = '';
         onCityChange();
-        showSuccess('鍩庡競"' + name + '"宸叉坊鍔?);
+        showSuccess('城市"' + name + '"已添加');
         saveCities();
     }
 
@@ -286,7 +295,7 @@
                         CITY_POLICIES[policy.city].push(code);
                     }
                 }
-                console.log('[鏀跨瓥] 宸插姞杞?, Object.keys(custom).length, '涓嚜瀹氫箟鏀跨瓥');
+                console.log('[政策] 已加载', Object.keys(custom).length, '个自定义政策');
             }
             // Load saved cities
             const savedCities = localStorage.getItem('rider_cities');
@@ -305,7 +314,7 @@
                 }
             }
         } catch (e) {
-            console.warn('[鏀跨瓥] 鍔犺浇澶辫触:', e);
+            console.warn('[政策] 加载失败:', e);
         }
     }
 
@@ -316,7 +325,7 @@
                 if (!REMOTE_POLICY_CODES.includes(code)) custom[code] = policy;
             }
             localStorage.setItem('rider_policies', JSON.stringify(custom));
-        } catch (e) { console.warn('[鏀跨瓥] 淇濆瓨澶辫触:', e); }
+        } catch (e) { console.warn('[政策] 保存失败:', e); }
     }
 
     function saveCities() {
@@ -327,7 +336,7 @@
                 if (!builtIn.includes(code)) custom[code] = name;
             }
             localStorage.setItem('rider_cities', JSON.stringify(custom));
-        } catch (e) { console.warn('[鍩庡競] 淇濆瓨澶辫触:', e); }
+        } catch (e) { console.warn('[城市] 保存失败:', e); }
     }
 
     // Load policies on startup: remote first, then local custom (local overrides remote)
@@ -340,7 +349,7 @@
     function refreshPolicyList(){
         const container=document.getElementById('policyList');
         if(!container) return;
-        // 鎸夊勾浠?鏈堜唤闄嶅簭鎺掑垪
+        // 按年份+月份降序排列
         const sorted=Object.entries(POLICIES).sort((a,b)=>{
             const pa=a[1],pb=b[1];
             const ya=pa.year||0,yb=pb.year||0;
@@ -351,18 +360,62 @@
         });
         let html='';
         for(const[code,policy]of sorted){
-            const cityName=CITY_NAMES[policy.city]||policy.city||'鏈煡';
-            const typeText=policy.type==='multi_phase'?`澶氭湡(${policy.phases?policy.phases.length:0}鏈?`:'鍗曟湡';
+            const cityName=CITY_NAMES[policy.city]||policy.city||'未知';
+            const typeText=policy.type==='multi_phase'?`多期(${policy.phases?policy.phases.length:0}期)`:'单期';
             const refText=policy.referrerType&&policy.referrerType!=='all'?` [${policy.referrerType}]`:'';
-            const monthText=policy.months&&policy.months.length?` ${policy.months.join('/')}鏈坄:'';
+            const monthText=policy.months&&policy.months.length?` ${policy.months.join('/')}月`:'';
             const isBuiltIn = REMOTE_POLICY_CODES.includes(code);
             html+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0f0f0;">
-                <span style="flex:1;"><b>${policy.name}</b><span style="color:#666;font-size:11px;">${refText}${monthText}</span> <span style="color:#999;">[${code}]</span> ${cityName} ${typeText} 楼${policy.rewardAmount||0}</span>
-                <button onclick="editPolicy('${code}')" style="padding:2px 10px;background:#4f46e5;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;">缂栬緫</button>
-                ${isBuiltIn?'':`<button onclick="deletePolicy('${code}')" style="padding:2px 10px;background:#dc3545;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;">鍒犻櫎</button>`}
+                <span style="flex:1;"><b>${policy.name}</b><span style="color:#666;font-size:11px;">${refText}${monthText}</span> <span style="color:#999;">[${code}]</span> ${cityName} ${typeText} ¥${policy.rewardAmount||0}</span>
+                <button onclick="editPolicy('${code}')" style="padding:2px 10px;background:#4f46e5;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;">编辑</button>
+                ${isBuiltIn?'':`<button onclick="deletePolicy('${code}')" style="padding:2px 10px;background:#dc3545;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;">删除</button>`}
             </div>`;
         }
-        container.innerHTML=html||'鏆傛棤鏀跨瓥';
+        container.innerHTML=html||'暂无政策';
+    }
+
+    function exportPoliciesJSON(){
+        // 一键发布：通过 GitHub API 直接更新远程 policies.json
+        let token=localStorage.getItem('gh_sync_token');
+        if(!token){
+            token=prompt('首次使用需输入 GitHub Token（仅需输入一次）：\n\n获取方式：GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)\n勾选 repo 权限即可。');
+            if(!token||token.length<10){showError('Token 无效，已取消');return;}
+            localStorage.setItem('gh_sync_token',token);
+        }
+        const owner='mimi123456-lab';
+        const repo='rider-verify';
+        const path='policies.json';
+        const apiUrl=`https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+        const headers={
+            'Authorization':`token ${token}`,
+            'Accept':'application/vnd.github.v3+json',
+            'Content-Type':'application/json'
+        };
+
+        // 先获取当前文件 SHA
+        fetch(apiUrl,{headers}).then(r=>{
+            if(!r.ok) throw new Error('获取远程文件失败: '+r.status);
+            return r.json();
+        }).then(data=>{
+            const sha=data.sha;
+            const json=JSON.stringify(POLICIES,null,2);
+            const content=btoa(unescape(encodeURIComponent(json)));
+            const body={message:'政策同步更新',content:content,sha:sha};
+            return fetch(apiUrl,{method:'PUT',headers,body:JSON.stringify(body)});
+        }).then(r=>{
+            if(!r.ok) throw new Error('上传失败: '+r.status);
+            return r.json();
+        }).then(()=>{
+            showSuccess('已发布到云端，全团队同步中...');
+            setTimeout(()=>location.reload(),2000);
+        }).catch(e=>{
+            if(e.message==='获取远程文件失败: 401'||e.message==='上传失败: 401'){
+                localStorage.removeItem('gh_sync_token');
+                showError('Token 过期或无效，请刷新页面后重新输入');
+            }else{
+                showError('发布失败: '+e.message);
+            }
+        });
     }
 
     function editPolicy(code){
@@ -377,28 +430,28 @@
 
         const formHtml=`
         <div class="section" id="policyFormSection">
-            <div class="section-title">缂栬緫鏀跨瓥 <span style="font-size:12px;color:#4f46e5;">${p.name}</span></div>
+            <div class="section-title">编辑政策 <span style="font-size:12px;color:#4f46e5;">${p.name}</span></div>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px;">
-                <div class="field"><label>鏀跨瓥浠ｇ爜</label><input type="text" id="newPolicyCode" value="${code}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" readonly></div>
-                <div class="field"><label>鏀跨瓥鍚嶇О</label><input type="text" id="newPolicyName" value="${p.name}" style="padding:8px;border:2px solid #4f46e5;border-radius:4px;width:100%;"></div>
-                <div class="field"><label>鎵€灞炲煄甯?/label><select id="newPolicyCity" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></select></div>
-                <div class="field"><label>鏀跨瓥绫诲瀷</label><select id="newPolicyType" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" onchange="togglePolicyFields()"><option value="single"${isMulti?'':' selected'}>鍗曟湡锛堜竴娆℃€э級</option><option value="multi_phase"${isMulti?' selected':''}>澶氭湡</option></select></div>
-                <div class="field"><label>鎬诲鍔遍噾棰?/label><input type="number" id="newPolicyReward" value="${p.rewardAmount||0}" style="padding:8px;border:2px solid #4f46e5;border-radius:4px;width:100%;"></div>
+                <div class="field"><label>政策代码</label><input type="text" id="newPolicyCode" value="${code}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" readonly></div>
+                <div class="field"><label>政策名称</label><input type="text" id="newPolicyName" value="${p.name}" style="padding:8px;border:2px solid #4f46e5;border-radius:4px;width:100%;"></div>
+                <div class="field"><label>所属城市</label><select id="newPolicyCity" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></select></div>
+                <div class="field"><label>政策类型</label><select id="newPolicyType" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" onchange="togglePolicyFields()"><option value="single"${isMulti?'':' selected'}>单期（一次性）</option><option value="multi_phase"${isMulti?' selected':''}>多期</option></select></div>
+                <div class="field"><label>总奖励金额</label><input type="number" id="newPolicyReward" value="${p.rewardAmount||0}" style="padding:8px;border:2px solid #4f46e5;border-radius:4px;width:100%;"></div>
             </div>
             <div id="singlePhaseFields" style="display:${isMulti?'none':'grid'};grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px;">
-                <div class="field"><label>鏈夋晥澶╂暟瑕佹眰</label><input type="number" id="newValidDays" value="${p.validDaysRequired||26}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></div>
-                <div class="field"><label>鎬诲ぉ鏁拌姹?/label><input type="number" id="newTotalDays" value="${p.totalDaysRequired||30}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></div>
-                <div class="field"><label>鏃ュ崟閲忚姹?/label><input type="number" id="newDailyOrders" value="${p.minDailyOrders||16}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></div>
-                <div class="field"><label>鏃ュ湪绾挎椂闀?/label><input type="number" step="0.5" id="newDailyHours" value="${p.minOnlineHours||6.5}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></div>
-                <div class="field"><label>鎬诲崟閲忚姹傦紙鍙€夛級</label><input type="number" id="newTotalOrders" value="${p.totalOrdersRequired||''}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></div>
+                <div class="field"><label>有效天数要求</label><input type="number" id="newValidDays" value="${p.validDaysRequired||26}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></div>
+                <div class="field"><label>总天数要求</label><input type="number" id="newTotalDays" value="${p.totalDaysRequired||30}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></div>
+                <div class="field"><label>日单量要求</label><input type="number" id="newDailyOrders" value="${p.minDailyOrders||16}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></div>
+                <div class="field"><label>日在线时长</label><input type="number" step="0.5" id="newDailyHours" value="${p.minOnlineHours||6.5}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></div>
+                <div class="field"><label>总单量要求（可选）</label><input type="number" id="newTotalOrders" value="${p.totalOrdersRequired||''}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></div>
             </div>
             <div id="multiPhaseFields" style="display:${isMulti?'block':'none'};margin-top:12px;">
-                <label style="font-size:13px;color:#666;">澶氭湡閰嶇疆锛堟瘡鏈熶竴琛岋細鏈夋晥澶╂暟,鎬诲崟閲?鏃ュ崟閲?鏃ユ椂闀?濂栧姳閲戦锛?/label>
+                <label style="font-size:13px;color:#666;">多期配置（每期一行：有效天数,总单量,日单量,日时长,奖励金额）</label>
                 <textarea id="newPhaseConfig" style="width:100%;height:80px;font-size:12px;border:1px solid #ddd;border-radius:4px;padding:8px;margin-top:8px;">${phaseText}</textarea>
             </div>
             <div style="margin-top:16px;display:flex;gap:12px;">
-                <button class="btn-primary" onclick="saveEditPolicy('${code}')">淇濆瓨淇敼</button>
-                <button class="btn-export" onclick="document.getElementById('policyFormSection').remove()">鍙栨秷</button>
+                <button class="btn-primary" onclick="saveEditPolicy('${code}')">保存修改</button>
+                <button class="btn-export" onclick="document.getElementById('policyFormSection').remove()">取消</button>
             </div>
             <div class="file-info" id="policyFormResult"></div>
         </div>`;
@@ -420,8 +473,8 @@
         const reward=parseFloat(document.getElementById('newPolicyReward').value);
         const resultEl=document.getElementById('policyFormResult');
 
-        if(!name){resultEl.textContent='璇峰～鍐欐斂绛栧悕绉?;resultEl.className='file-info error';return;}
-        if(isNaN(reward)||reward<0){resultEl.textContent='璇峰～鍐欐湁鏁堥噾棰?;resultEl.className='file-info error';return;}
+        if(!name){resultEl.textContent='请填写政策名称';resultEl.className='file-info error';return;}
+        if(isNaN(reward)||reward<0){resultEl.textContent='请填写有效金额';resultEl.className='file-info error';return;}
 
         // Remove old policy from city list if code changed
         if(code!==oldCode){
@@ -434,7 +487,7 @@
 
         const newPolicy={name,code,city,type,rewardAmount:reward,fullDayHoursCol:'online_hours',peakHoursCol:'online_hours',hasPeaks:false,
             year:parseInt(document.getElementById('newPolicyYear').value)||2026,
-            months:document.getElementById('newPolicyMonths').value?document.getElementById('newPolicyMonths').value.split(/[,锛宂/).map(Number).filter(n=>n>0&&n<=12):[],
+            months:document.getElementById('newPolicyMonths').value?document.getElementById('newPolicyMonths').value.split(/[,，]/).map(Number).filter(n=>n>0&&n<=12):[],
             referrerType:document.getElementById('newPolicyRefType').value||'all',
             stations:[]};
         if(type==='single'){
@@ -449,7 +502,7 @@
             const phases=[];
             const lines=phaseText.split('\n').filter(l=>l.trim());
             for(let i=0;i<lines.length;i++){
-                const parts=lines[i].split(/[,锛宂/).map(s=>s.trim());
+                const parts=lines[i].split(/[,，]/).map(s=>s.trim());
                 if(parts.length>=5&&!isNaN(Number(parts[0]))){
                     const[vd,to,do2,dh,rw]=parts.map(Number);
                     phases.push({validDays:vd,totalOrders:to,dailyOrders:do2,dailyHours:dh,reward:rw});
@@ -464,13 +517,13 @@
         savePolicies();
         refreshPolicyList();
         onCityChange();
-        resultEl.textContent='鏀跨瓥宸蹭繚瀛橈紒';resultEl.className='file-info success';
-        showSuccess('鏀跨瓥"'+name+'"宸叉洿鏂?);
+        resultEl.textContent='政策已保存！';resultEl.className='file-info success';
+        showSuccess('政策"'+name+'"已更新');
         setTimeout(()=>{const f=document.getElementById('policyFormSection');if(f)f.remove();},2000);
     }
 
     function deletePolicy(code){
-        if(!confirm('纭畾鍒犻櫎鏀跨瓥"'+POLICIES[code].name+'"锛?)) return;
+        if(!confirm('确定删除政策"'+POLICIES[code].name+'"？')) return;
         const policy=POLICIES[code];
         if(policy.city&&CITY_POLICIES[policy.city]){
             CITY_POLICIES[policy.city]=CITY_POLICIES[policy.city].filter(c=>c!==code);
@@ -479,7 +532,7 @@
         savePolicies();
         refreshPolicyList();
         onCityChange();
-        showSuccess('鏀跨瓥宸插垹闄?);
+        showSuccess('政策已删除');
     }
 
     // ============================================================
@@ -488,11 +541,11 @@
     function showError(msg) { const t=document.getElementById('errorToast'); t.textContent=msg; t.classList.add('show','error'); setTimeout(()=>t.classList.remove('show','error'),5000); }
     function showSuccess(msg) { const t=document.getElementById('successToast'); t.textContent=msg; t.classList.add('show','success'); setTimeout(()=>t.classList.remove('show','success'),3000); }
     function toString(val) { if(val===null||val===undefined) return ''; return String(val).trim(); }
-    function toNumber(val) { if(val===null||val===undefined||val==='') return 0; if(typeof val==='number') return val; const c=String(val).replace(/[,锛孿s]/g,''); const n=parseFloat(c); return isNaN(n)?0:n; }
+    function toNumber(val) { if(val===null||val===undefined||val==='') return 0; if(typeof val==='number') return val; const c=String(val).replace(/[,，\s]/g,''); const n=parseFloat(c); return isNaN(n)?0:n; }
     function toHours(val) { if(val===null||val===undefined||val==='') return 0; if(typeof val==='number') return val*24; if(typeof val==='string'){const p=val.split(':');if(p.length>=2){const h=parseFloat(p[0])||0,m=parseFloat(p[1])||0,s=p.length>2?(parseFloat(p[2])||0):0;return h+m/60+s/3600;}const n=parseFloat(val);if(!isNaN(n))return n*24;} return 0; }
-    function isFullDay(p){const s=toString(p);return s==='鍏ㄥぉ'||s.includes('鏃╅')||s.includes('鍗堥')||s.includes('鏅氶')||(!s.includes('鍗堥珮宄?)&&!s.includes('鏅氶珮宄?)&&s.length>0);}
-    function isLunchPeak(p){return toString(p).includes('鍗堥珮宄?);}
-    function isDinnerPeak(p){return toString(p).includes('鏅氶珮宄?);}
+    function isFullDay(p){const s=toString(p);return s==='全天'||s.includes('早餐')||s.includes('午餐')||s.includes('晚餐')||(!s.includes('午高峰')&&!s.includes('晚高峰')&&s.length>0);}
+    function isLunchPeak(p){return toString(p).includes('午高峰');}
+    function isDinnerPeak(p){return toString(p).includes('晚高峰');}
 
     /**
      * Format date to YYYY/MM/DD
@@ -533,27 +586,27 @@
         const file=e.target.files[0]; if(!file) return;
         document.getElementById('attendanceFileName').textContent=file.name;
         const infoEl=document.getElementById('attendanceFileInfo');
-        infoEl.textContent='姝ｅ湪璇诲彇...'; infoEl.className='file-info';
+        infoEl.textContent='正在读取...'; infoEl.className='file-info';
         try{
             attendanceData=await parseExcelFile(file);
-            if(attendanceData.length<2){infoEl.textContent='鏁版嵁涓嶈冻';infoEl.className='file-info error';return;}
-            attendanceHeaders=attendanceData[0].map((h,i)=>`${h||'鍒?+(i+1)}`);
-            infoEl.textContent=`宸插姞杞? ${file.name}锛?{attendanceData.length-1}琛岋紝${attendanceData[0].length}鍒楋級`;
+            if(attendanceData.length<2){infoEl.textContent='数据不足';infoEl.className='file-info error';return;}
+            attendanceHeaders=attendanceData[0].map((h,i)=>`${h||'列'+(i+1)}`);
+            infoEl.textContent=`已加载: ${file.name}（${attendanceData.length-1}行，${attendanceData[0].length}列）`;
             infoEl.className='file-info success';
             populateColumnDropdowns(); autoDetectColumns();
-        }catch(err){infoEl.textContent='璇诲彇澶辫触: '+err.message;infoEl.className='file-info error';}
+        }catch(err){infoEl.textContent='读取失败: '+err.message;infoEl.className='file-info error';}
     });
 
     function populateColumnDropdowns(){
         ['colRiderId','colName','colDate','colPeriod','colOrders','colFullDayHours','colPeakHours'].forEach(id=>{
-            const sel=document.getElementById(id); sel.innerHTML='<option value="">-- 璇烽€夋嫨 --</option>';
+            const sel=document.getElementById(id); sel.innerHTML='<option value="">-- 请选择 --</option>';
             attendanceHeaders.forEach((h,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`[${i+1}] ${h}`;sel.appendChild(o);});
         });
     }
 
     function autoDetectColumns(){
-        const hints={colRiderId:['楠戞墜id','楠戞墜缂栧彿','rider_id','鍏ヨ亴楠戞墜id'],colName:['楠戞墜濮撳悕','濮撳悕','rider_name','鍏ヨ亴楠戞墜濮撳悕'],colDate:['鑰冨嫟鏃ユ湡','鏃ユ湡','date'],colPeriod:['鏃舵','period','鏃堕棿娈?],colOrders:['瀹屽崟閲?,'瀹屾垚鍗曢噺','璁㈠崟閲?,'鍗曢噺'],colFullDayHours:['鏈夋晥鍦ㄧ嚎鏃堕暱','鍦ㄧ嚎鏃堕暱','hours'],colPeakHours:['鍦ㄧ嚎鏃堕暱','hours']};
-        for(const[selId,kws]of Object.entries(hints)){const sel=document.getElementById(selId);for(const kw of kws){for(let i=0;i<attendanceHeaders.length;i++){const h=attendanceHeaders[i].toLowerCase();if(h===kw||h.includes(kw)){if(selId==='colRiderId'&&(h.includes('濮撳悕')||h.includes('name')))continue;if(selId==='colName'&&(h.includes('id')||h.includes('缂栧彿')))continue;sel.value=i;break;}}}}
+        const hints={colRiderId:['骑手id','骑手编号','rider_id','入职骑手id'],colName:['骑手姓名','姓名','rider_name','入职骑手姓名'],colDate:['考勤日期','日期','date'],colPeriod:['时段','period','时间段'],colOrders:['完单量','完成单量','订单量','单量'],colFullDayHours:['有效在线时长','在线时长','hours'],colPeakHours:['在线时长','hours']};
+        for(const[selId,kws]of Object.entries(hints)){const sel=document.getElementById(selId);for(const kw of kws){for(let i=0;i<attendanceHeaders.length;i++){const h=attendanceHeaders[i].toLowerCase();if(h===kw||h.includes(kw)){if(selId==='colRiderId'&&(h.includes('姓名')||h.includes('name')))continue;if(selId==='colName'&&(h.includes('id')||h.includes('编号')))continue;sel.value=i;break;}}}}
     }
 
     // ============================================================
@@ -565,11 +618,11 @@
         const infoEl=document.getElementById('riderListInfo');
         try{
             riderListData=await parseExcelFile(file);
-            if(riderListData.length<2){infoEl.textContent='鏁版嵁涓嶈冻';infoEl.className='file-info error';return;}
+            if(riderListData.length<2){infoEl.textContent='数据不足';infoEl.className='file-info error';return;}
             const headers=riderListData[0].map(h=>toString(h));
-            infoEl.textContent=`宸插姞杞?{riderListData.length-1}鏉★紝鍒? ${headers.join('銆?)}`;
+            infoEl.textContent=`已加载${riderListData.length-1}条，列: ${headers.join('、')}`;
             infoEl.className='file-info success';
-        }catch(err){infoEl.textContent='璇诲彇澶辫触: '+err.message;infoEl.className='file-info error';}
+        }catch(err){infoEl.textContent='读取失败: '+err.message;infoEl.className='file-info error';}
     });
 
     // History file upload
@@ -580,10 +633,10 @@
             historyData=await parseExcelFile(file);
             historyIndex=buildHistoryIndex(historyData);
             const rc=historyData.length-1, refc=Object.keys(historyIndex).length;
-            showSuccess(`鍘嗗彶鍙戞斁璁板綍宸插姞杞斤紙${rc}鏉★紝娑夊強${refc}浣嶄粙缁嶄汉锛塦);
-            document.getElementById('historyInfo').textContent=`宸插姞杞?{rc}鏉″巻鍙插彂鏀捐褰昤;
+            showSuccess(`历史发放记录已加载（${rc}条，涉及${refc}位介绍人）`);
+            document.getElementById('historyInfo').textContent=`已加载${rc}条历史发放记录`;
             document.getElementById('historyInfo').className='file-info success';
-        }catch(err){showError('鍘嗗彶鏂囦欢璇诲彇澶辫触: '+err.message);}
+        }catch(err){showError('历史文件读取失败: '+err.message);}
     });
 
     // ============================================================
@@ -592,8 +645,8 @@
     document.getElementById('policyFile').addEventListener('change', async function(e){
         const files=e.target.files; if(!files||files.length===0) return;
         const infoEl=document.getElementById('policyFileInfo');
-        document.getElementById('policyFileName').textContent=`宸查€夋嫨${files.length}涓枃浠禶;
-        infoEl.textContent=`姝ｅ湪瑙ｆ瀽${files.length}涓斂绛栨枃浠?..`;
+        document.getElementById('policyFileName').textContent=`已选择${files.length}个文件`;
+        infoEl.textContent=`正在解析${files.length}个政策文件...`;
         infoEl.className='file-info';
 
         let successCount=0, failCount=0;
@@ -610,16 +663,16 @@
                 const config=JSON.parse(text);
                 if(config.policies){
                     const errors=validatePolicies(config.policies);
-                    if(errors.length>0){infoEl.textContent='鏀跨瓥鏍￠獙澶辫触锛?+errors.join('锛?);infoEl.className='file-info error';return;}
+                    if(errors.length>0){infoEl.textContent='政策校验失败：'+errors.join('；');infoEl.className='file-info error';return;}
                     Object.assign(POLICIES, config.policies);
                     for(const[code,policy]of Object.entries(config.policies)){
                         if(policy.city&&!CITY_POLICIES[policy.city]) CITY_POLICIES[policy.city]=[];
                         if(policy.city&&!CITY_POLICIES[policy.city].includes(code)) CITY_POLICIES[policy.city].push(code);
                     }
                     savePolicies();
-                    infoEl.textContent=`宸插姞杞?{Object.keys(config.policies).length}涓柊鏀跨瓥`;
+                    infoEl.textContent=`已加载${Object.keys(config.policies).length}个新政策`;
                     infoEl.className='file-info success';
-                    showSuccess('鏀跨瓥閰嶇疆鍔犺浇鎴愬姛');
+                    showSuccess('政策配置加载成功');
                     onCityChange();
                     return;
                 }
@@ -667,7 +720,7 @@
                 }
                 policyText=text.trim();
                 if(policyText.length<10){
-                    infoEl.textContent='.doc鏂囦欢鏈兘鎻愬彇鍒拌冻澶熸枃鏈紝璇风敤Word鍙﹀瓨涓?docx鏍煎紡鍚庨噸鏂颁笂浼?;
+                    infoEl.textContent='.doc文件未能提取到足够文本，请用Word另存为.docx格式后重新上传';
                     infoEl.className='file-info error';
                     return;
                 }
@@ -692,7 +745,7 @@
             }
 
             if(policyText){
-                console.log('[鏀跨瓥] 鎻愬彇鏂囨湰:', policyText.substring(0, 500));
+                console.log('[政策] 提取文本:', policyText.substring(0, 500));
                 const parsed=autoParsePolicy(policyText);
                 parsed.name=parsed.name||file.name.replace(/\.[^.]+$/,'');
                 allParsed.push({text:policyText, parsed, fileName:file.name});
@@ -702,18 +755,18 @@
             }
         }catch(err){
             failCount++;
-            console.warn('[鏀跨瓥] 鏂囦欢'+file.name+'瑙ｆ瀽澶辫触:', err.message);
+            console.warn('[政策] 文件'+file.name+'解析失败:', err.message);
         }
         } // end for loop
 
         // Show results
         if(allParsed.length===0){
-            infoEl.textContent=`${files.length}涓枃浠跺潎鏈垚鍔熻В鏋恅;
+            infoEl.textContent=`${files.length}个文件均未成功解析`;
             infoEl.className='file-info error';
         }else if(allParsed.length===1){
             // Single file: show form for confirmation
             showPolicyForm(allParsed[0].text, allParsed[0].parsed);
-            infoEl.textContent=`宸茶瘑鍒?${allParsed[0].fileName}"鐨勬斂绛栨潯浠讹紝璇峰湪琛ㄥ崟涓‘璁?淇敼`;
+            infoEl.textContent=`已识别"${allParsed[0].fileName}"的政策条件，请在表单中确认/修改`;
             infoEl.className='file-info success';
         }else{
             // Multiple files: auto-add all policies
@@ -738,9 +791,9 @@
             savePolicies();
             refreshPolicyList();
             onCityChange();
-            infoEl.textContent=`鎴愬姛瑙ｆ瀽${successCount}涓斂绛栨枃浠讹紝宸茶嚜鍔ㄦ坊鍔?{allParsed.length}涓柊鏀跨瓥${failCount>0?'锛?+failCount+'涓け璐?:''}`;
+            infoEl.textContent=`成功解析${successCount}个政策文件，已自动添加${allParsed.length}个新政策${failCount>0?'，'+failCount+'个失败':''}`;
             infoEl.className='file-info success';
-            showSuccess(`宸叉坊鍔?{allParsed.length}涓柊鏀跨瓥`);
+            showSuccess(`已添加${allParsed.length}个新政策`);
         }
     });
 
@@ -753,62 +806,62 @@
             lunchMinHours:0,lunchMinOrders:0,dinnerMinHours:0,
             hasPeaks:false,phases:[]};
 
-        // ===== 1. 璇嗗埆鍩庡競 =====
-        if(text.includes('涓婃捣')) result.city='shanghai';
-        else if(text.includes('闈掑矝')) result.city='qingdao';
-        else if(text.includes('娼嶅潑')) result.city='weifang';
+        // ===== 1. 识别城市 =====
+        if(text.includes('上海')) result.city='shanghai';
+        else if(text.includes('青岛')) result.city='qingdao';
+        else if(text.includes('潍坊')) result.city='weifang';
 
-        // ===== 1b. 璇嗗埆骞翠唤 =====
-        const yearMatch=text.match(/20(2[5-9]|3[0-1])\s*骞?);
+        // ===== 1b. 识别年份 =====
+        const yearMatch=text.match(/20(2[5-9]|3[0-1])\s*年/);
         if(yearMatch) result.year=parseInt(yearMatch[0]);
 
-        // ===== 1c. 璇嗗埆鎺ㄨ崘浜虹被鍨?=====
-        if(text.includes('鍐呮帹')) result.referrerType='鍐呮帹';
-        else if(text.includes('涓粙')||text.includes('浜鸿祫')) result.referrerType='涓粙';
+        // ===== 1c. 识别推荐人类型 =====
+        if(text.includes('内推')) result.referrerType='内推';
+        else if(text.includes('中介')||text.includes('人资')) result.referrerType='中介';
 
-        // ===== 2. 璇嗗埆鏀跨瓥鍚嶇О =====
+        // ===== 2. 识别政策名称 =====
         const titleMatch=text.match(/^[^\n]{5,50}/m);
         if(titleMatch){
             let title=titleMatch[0].trim();
-            title=title.replace(/^(闄勪欢|鍏充簬|閫氱煡|锛殀:)\s*/,'');
+            title=title.replace(/^(附件|关于|通知|：|:)\s*/,'');
             if(title.length>=4&&title.length<=60) result.name=title;
         }
 
-        // ===== 3. 璇嗗埆鎬诲鍔遍噾棰?=====
-        const rewardPatterns=[/濂栧姳.*?(\d{3,4})\s*鍏?,/琛ヨ创.*?鍏辫.*?(\d{3,4})\s*鍏?,/(\d{3,4})\s*鍏?*?鍒哰涓や簩2涓?]\s*涓?,/(\d{3,4})\s*鍏?];
+        // ===== 3. 识别总奖励金额 =====
+        const rewardPatterns=[/奖励.*?(\d{3,4})\s*元/,/补贴.*?共计.*?(\d{3,4})\s*元/,/(\d{3,4})\s*元.*?分[两二2三3]\s*个/,/(\d{3,4})\s*元/];
         for(const pat of rewardPatterns){const m=text.match(pat);if(m){result.reward=parseInt(m[1]);break;}}
 
-        // ===== 4. 璇嗗埆鏈夋晥鍑哄嫟澶╂暟 =====
-        const vdPatterns=[/鏈夋晥鍑哄嫟.*?(\d+)\s*澶?g,/鏈夋晥澶╂暟.*?(\d+)\s*澶?g,/鍑哄嫟澶╂暟.*?(\d+)\s*澶?g,/(\d+)\s*澶?*?鏈夋晥/g];
+        // ===== 4. 识别有效出勤天数 =====
+        const vdPatterns=[/有效出勤.*?(\d+)\s*天/g,/有效天数.*?(\d+)\s*天/g,/出勤天数.*?(\d+)\s*天/g,/(\d+)\s*天.*?有效/g];
         for(const pat of vdPatterns){const matches=[...text.matchAll(pat)];for(const m of matches){const v=parseInt(m[1]);if(v>=15&&v<=31){result.validDays=v;break;}}if(result.validDays)break;}
 
-        // ===== 5. 璇嗗埆姣忔棩鍗曢噺 =====
-        const doPatterns=[/姣忔棩.*?(\d{1,2})\s*鍗?,/鏃ュ崟.*?(\d{1,2})\s*鍗?,/瀹屾垚.*?(\d{1,2})\s*鍗?*?璁?*?澶?];
+        // ===== 5. 识别每日单量 =====
+        const doPatterns=[/每日.*?(\d{1,2})\s*单/,/日单.*?(\d{1,2})\s*单/,/完成.*?(\d{1,2})\s*单.*?计.*?天/];
         for(const pat of doPatterns){const m=text.match(pat);if(m){const v=parseInt(m[1]);if(v>=5&&v<=50){result.dailyOrders=v;break;}}}
 
-        // ===== 6. 璇嗗埆姣忔棩鍦ㄧ嚎鏃堕暱 =====
-        const dhPatterns=[/姣忔棩.*?鍦ㄧ嚎.*?(\d+\.?\d*)\s*(?:灏忔椂|h)/,/鏈夋晥鍦ㄧ嚎.*?(\d+\.?\d*)\s*(?:灏忔椂|h)/,/鍦ㄧ嚎鏃堕暱.*?(\d+\.?\d*)\s*(?:灏忔椂|h)/];
+        // ===== 6. 识别每日在线时长 =====
+        const dhPatterns=[/每日.*?在线.*?(\d+\.?\d*)\s*(?:小时|h)/,/有效在线.*?(\d+\.?\d*)\s*(?:小时|h)/,/在线时长.*?(\d+\.?\d*)\s*(?:小时|h)/];
         for(const pat of dhPatterns){const m=text.match(pat);if(m){const v=parseFloat(m[1]);if(v>=3&&v<=15){result.dailyHours=v;break;}}}
 
-        // ===== 7. 璇嗗埆鍗堥珮宄拌姹?=====
-        const lunchPatterns=[/鍗堥珮宄?*?(\d+\.?\d*)\s*(?:灏忔椂|h)/,/鍗堥珮宄?*?鍦ㄧ嚎.*?(\d+\.?\d*)/,/鍗堥珮宄?*?>*=?\s*(\d+\.?\d*)/];
+        // ===== 7. 识别午高峰要求 =====
+        const lunchPatterns=[/午高峰.*?(\d+\.?\d*)\s*(?:小时|h)/,/午高峰.*?在线.*?(\d+\.?\d*)/,/午高峰.*?>*=?\s*(\d+\.?\d*)/];
         for(const pat of lunchPatterns){const m=text.match(pat);if(m){const v=parseFloat(m[1]);if(v>=1&&v<=6){result.lunchMinHours=v;result.hasPeaks=true;break;}}}
-        const loPatterns=[/鍗堥珮宄?*?鍗?*?(\d{1,2})/,/鍗堥珮宄?*?(\d{1,2})\s*鍗?];
+        const loPatterns=[/午高峰.*?单.*?(\d{1,2})/,/午高峰.*?(\d{1,2})\s*单/];
         for(const pat of loPatterns){const m=text.match(pat);if(m){const v=parseInt(m[1]);if(v>=1&&v<=20){result.lunchMinOrders=v;break;}}}
 
-        // ===== 8. 璇嗗埆鏅氶珮宄拌姹?=====
-        const dinnerPatterns=[/鏅氶珮宄?*?(\d+\.?\d*)\s*(?:灏忔椂|h)/,/鏅氶珮宄?*?鍦ㄧ嚎.*?(\d+\.?\d*)/,/鏅氶珮宄?*?>*=?\s*(\d+\.?\d*)/];
+        // ===== 8. 识别晚高峰要求 =====
+        const dinnerPatterns=[/晚高峰.*?(\d+\.?\d*)\s*(?:小时|h)/,/晚高峰.*?在线.*?(\d+\.?\d*)/,/晚高峰.*?>*=?\s*(\d+\.?\d*)/];
         for(const pat of dinnerPatterns){const m=text.match(pat);if(m){const v=parseFloat(m[1]);if(v>=1&&v<=6){result.dinnerMinHours=v;result.hasPeaks=true;break;}}}
 
-        // ===== 9. 璇嗗埆鎬诲崟閲?=====
-        const toPatterns=[/鎬诲崟.*?(\d{2,4})\s*鍗?,/(\d{2,4})\s*鍗?*?鎬?];
+        // ===== 9. 识别总单量 =====
+        const toPatterns=[/总单.*?(\d{2,4})\s*单/,/(\d{2,4})\s*单.*?总/];
         for(const pat of toPatterns){const m=text.match(pat);if(m){const v=parseInt(m[1]);if(v>=100&&v<=5000){result.totalOrders=v;break;}}}
 
-        // ===== 10. 璇嗗埆澶氭湡 =====
-        const hasPhase1=text.includes('绗竴鏈?)||text.includes('绗竴涓湀');
-        const hasPhase2=text.includes('绗簩鏈?)||text.includes('绗簩涓湀');
-        const hasPhase3=text.includes('绗笁鏈?)||text.includes('绗笁涓湀');
-        const splitMatch=text.match(/鍒哰涓や簩2涓?]\s*[涓鏈圿/);
+        // ===== 10. 识别多期 =====
+        const hasPhase1=text.includes('第一期')||text.includes('第一个月');
+        const hasPhase2=text.includes('第二期')||text.includes('第二个月');
+        const hasPhase3=text.includes('第三期')||text.includes('第三个月');
+        const splitMatch=text.match(/分[两二2三3]\s*[个多月]/);
 
         if((hasPhase2||hasPhase3||splitMatch)&&result.reward>0){
             result.type='multi_phase';
@@ -816,22 +869,22 @@
             if(hasPhase1) phaseBlocks.push(1);
             if(hasPhase2) phaseBlocks.push(2);
             if(hasPhase3) phaseBlocks.push(3);
-            const cnNums=['涓€','浜?,'涓?];
+            const cnNums=['一','二','三'];
             for(const phaseNum of phaseBlocks){
                 let phaseText='';
-                if(text.includes('绗?+cnNums[phaseNum-1]+'涓湀')){const parts=text.split('绗?+cnNums[phaseNum-1]+'涓湀');if(parts[1])phaseText=parts[1].split(/绗琜涓€浜屼笁]涓湀|绗琜涓€浜屼笁鍥沒鏈焲娉╗锛?]/)[0];}
-                if(!phaseText&&text.includes('绗?+phaseNum+'鏈?)){const parts=text.split('绗?+phaseNum+'鏈?);if(parts[1])phaseText=parts[1].split('绗?+(phaseNum+1)+'鏈?)[0];}
-                if(!phaseText){const idx=text.indexOf('绗?+phaseNum+'鏈?);if(idx>=0)phaseText=text.substring(idx,Math.min(idx+100,text.length));}
+                if(text.includes('第'+cnNums[phaseNum-1]+'个月')){const parts=text.split('第'+cnNums[phaseNum-1]+'个月');if(parts[1])phaseText=parts[1].split(/第[一二三]个月|第[一二三四]期|注[：:]/)[0];}
+                if(!phaseText&&text.includes('第'+phaseNum+'期')){const parts=text.split('第'+phaseNum+'期');if(parts[1])phaseText=parts[1].split('第'+(phaseNum+1)+'期')[0];}
+                if(!phaseText){const idx=text.indexOf('第'+phaseNum+'期');if(idx>=0)phaseText=text.substring(idx,Math.min(idx+100,text.length));}
                 let phaseReward=0;
-                if(phaseText){const rMatch=phaseText.match(/(\d{3,4})\s*鍏?);if(rMatch)phaseReward=parseInt(rMatch[1]);if(!phaseReward){const rParts=phaseText.match(/(\d{2,4})\s*鍏?g);if(rParts)phaseReward=rParts.map(r=>parseInt(r)).reduce((a,b)=>a+b,0);}}
+                if(phaseText){const rMatch=phaseText.match(/(\d{3,4})\s*元/);if(rMatch)phaseReward=parseInt(rMatch[1]);if(!phaseReward){const rParts=phaseText.match(/(\d{2,4})\s*元/g);if(rParts)phaseReward=rParts.map(r=>parseInt(r)).reduce((a,b)=>a+b,0);}}
                 if(!phaseReward)phaseReward=Math.round(result.reward/phaseBlocks.length);
-                const pDays=phaseText?phaseText.match(/(\d+)\s*澶?):null;
-                const pOrders=phaseText?phaseText.match(/(\d{2,4})\s*鍗?):null;
+                const pDays=phaseText?phaseText.match(/(\d+)\s*天/):null;
+                const pOrders=phaseText?phaseText.match(/(\d{2,4})\s*单/):null;
                 result.phases.push({validDays:pDays?parseInt(pDays[1]):(result.validDays||(phaseNum===1?26:27)),totalOrders:pOrders?parseInt(pOrders[1]):(phaseNum===1?700:900),dailyOrders:result.dailyOrders||16,dailyHours:result.dailyHours||6.5,reward:phaseReward});
             }
         }
 
-        console.log('[鑷姩瑙ｆ瀽缁撴灉]',JSON.stringify(result,null,2));
+        console.log('[自动解析结果]',JSON.stringify(result,null,2));
         return result;
     }
 
@@ -846,32 +899,32 @@
 
         const formHtml=`
         <div class="section" id="policyFormSection">
-            <div class="section-title">鏂版斂绛栭厤缃?<span style="font-size:12px;color:#28a745;font-weight:400;">锛堢豢鑹蹭负鑷姩璇嗗埆锛岃纭/淇敼锛?/span></div>
-            <div class="hint-text">鍙傝€冩枃鏈細<br><textarea id="policyRefText" style="width:100%;height:80px;font-size:11px;border:1px solid #ddd;border-radius:4px;padding:8px;margin-top:4px;">${referenceText.substring(0, 800)}</textarea></div>
+            <div class="section-title">新政策配置 <span style="font-size:12px;color:#28a745;font-weight:400;">（绿色为自动识别，请确认/修改）</span></div>
+            <div class="hint-text">参考文本：<br><textarea id="policyRefText" style="width:100%;height:80px;font-size:11px;border:1px solid #ddd;border-radius:4px;padding:8px;margin-top:4px;">${referenceText.substring(0, 800)}</textarea></div>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px;">
-                <div class="field"><label>鏀跨瓥浠ｇ爜锛堣嫳鏂囷級*</label><input type="text" id="newPolicyCode" value="${p.name?p.name.toLowerCase().replace(/[^a-z0-9]/g,'_').substring(0,30):''}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" placeholder="濡? new_policy_2026"></div>
-                <div class="field"><label>鏀跨瓥鍚嶇О*锛堣嚜宸卞啓锛?/label><input type="text" id="newPolicyName" value="${p.name||''}" style="padding:8px;border:2px solid #28a745;border-radius:4px;width:100%;" placeholder="濡? 2026骞?鏈?娼嶅潑-涓粙1300-鍏ㄧ珯鐐?></div>
-                <div class="field"><label>鎵€灞炲煄甯?</label><select id="newPolicyCity" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></select></div>
-                <div class="field"><label>閫傜敤骞翠唤</label><input type="number" id="newPolicyYear" value="${p.year||2026}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" placeholder="濡? 2026"></div>
-                <div class="field"><label>閫傜敤鏈堜唤锛堥€楀彿鍒嗛殧锛岀┖=涓嶉檺锛?/label><input type="text" id="newPolicyMonths" value="${(p.months||[]).join(',')}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" placeholder="濡? 4,5,6 鎴栫暀绌轰笉闄?></div>
-                <div class="field"><label>鎺ㄨ崘浜虹被鍨?/label><select id="newPolicyRefType" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"><option value="all"${(!p.referrerType||p.referrerType==='all')?' selected':''}>涓嶉檺</option><option value="涓粙"${p.referrerType==='涓粙'?' selected':''}>涓粙</option><option value="鍐呮帹"${p.referrerType==='鍐呮帹'?' selected':''}>鍐呮帹</option></select></div>
-                <div class="field"><label>鏀跨瓥绫诲瀷*</label><select id="newPolicyType" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" onchange="togglePolicyFields()"><option value="single"${isMulti?'':' selected'}>鍗曟湡锛堜竴娆℃€э級</option><option value="multi_phase"${isMulti?' selected':''}>澶氭湡</option></select></div>
-                <div class="field"><label>鎬诲鍔遍噾棰?</label><input type="number" id="newPolicyReward" value="${p.reward||''}" style="padding:8px;border:2px solid #28a745;border-radius:4px;width:100%;" placeholder="濡? 2000"></div>
+                <div class="field"><label>政策代码（英文）*</label><input type="text" id="newPolicyCode" value="${p.name?p.name.toLowerCase().replace(/[^a-z0-9]/g,'_').substring(0,30):''}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" placeholder="如: new_policy_2026"></div>
+                <div class="field"><label>政策名称*（自己写）</label><input type="text" id="newPolicyName" value="${p.name||''}" style="padding:8px;border:2px solid #28a745;border-radius:4px;width:100%;" placeholder="如: 2026年4月-潍坊-中介1300-全站点"></div>
+                <div class="field"><label>所属城市*</label><select id="newPolicyCity" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></select></div>
+                <div class="field"><label>适用年份</label><input type="number" id="newPolicyYear" value="${p.year||2026}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" placeholder="如: 2026"></div>
+                <div class="field"><label>适用月份（逗号分隔，空=不限）</label><input type="text" id="newPolicyMonths" value="${(p.months||[]).join(',')}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" placeholder="如: 4,5,6 或留空不限"></div>
+                <div class="field"><label>推荐人类型</label><select id="newPolicyRefType" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"><option value="all"${(!p.referrerType||p.referrerType==='all')?' selected':''}>不限</option><option value="中介"${p.referrerType==='中介'?' selected':''}>中介</option><option value="内推"${p.referrerType==='内推'?' selected':''}>内推</option></select></div>
+                <div class="field"><label>政策类型*</label><select id="newPolicyType" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" onchange="togglePolicyFields()"><option value="single"${isMulti?'':' selected'}>单期（一次性）</option><option value="multi_phase"${isMulti?' selected':''}>多期</option></select></div>
+                <div class="field"><label>总奖励金额*</label><input type="number" id="newPolicyReward" value="${p.reward||''}" style="padding:8px;border:2px solid #28a745;border-radius:4px;width:100%;" placeholder="如: 2000"></div>
             </div>
             <div id="singlePhaseFields" style="display:${isMulti?'none':'grid'};grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px;">
-                <div class="field"><label>鏈夋晥澶╂暟瑕佹眰*</label><input type="number" id="newValidDays" value="${p.validDays||''}" style="padding:8px;border:2px solid #28a745;border-radius:4px;width:100%;" placeholder="濡? 26"></div>
-                <div class="field"><label>鎬诲ぉ鏁拌姹?/label><input type="number" id="newTotalDays" value="${p.totalDays||30}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" placeholder="濡? 30"></div>
-                <div class="field"><label>鏃ュ崟閲忚姹?</label><input type="number" id="newDailyOrders" value="${p.dailyOrders||''}" style="padding:8px;border:2px solid #28a745;border-radius:4px;width:100%;" placeholder="濡? 20"></div>
-                <div class="field"><label>鏃ュ湪绾挎椂闀?</label><input type="number" step="0.5" id="newDailyHours" value="${p.dailyHours||''}" style="padding:8px;border:2px solid #28a745;border-radius:4px;width:100%;" placeholder="濡? 8"></div>
-                <div class="field"><label>鎬诲崟閲忚姹傦紙鍙€夛級</label><input type="number" id="newTotalOrders" value="${p.totalOrders||''}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" placeholder="濡? 900"></div>
+                <div class="field"><label>有效天数要求*</label><input type="number" id="newValidDays" value="${p.validDays||''}" style="padding:8px;border:2px solid #28a745;border-radius:4px;width:100%;" placeholder="如: 26"></div>
+                <div class="field"><label>总天数要求</label><input type="number" id="newTotalDays" value="${p.totalDays||30}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" placeholder="如: 30"></div>
+                <div class="field"><label>日单量要求*</label><input type="number" id="newDailyOrders" value="${p.dailyOrders||''}" style="padding:8px;border:2px solid #28a745;border-radius:4px;width:100%;" placeholder="如: 20"></div>
+                <div class="field"><label>日在线时长*</label><input type="number" step="0.5" id="newDailyHours" value="${p.dailyHours||''}" style="padding:8px;border:2px solid #28a745;border-radius:4px;width:100%;" placeholder="如: 8"></div>
+                <div class="field"><label>总单量要求（可选）</label><input type="number" id="newTotalOrders" value="${p.totalOrders||''}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" placeholder="如: 900"></div>
             </div>
             <div id="multiPhaseFields" style="display:${isMulti?'block':'none'};margin-top:12px;">
-                <label style="font-size:13px;color:#666;">澶氭湡閰嶇疆锛堟瘡鏈熶竴琛岋紝鏍煎紡锛氭湁鏁堝ぉ鏁?鎬诲崟閲?鏃ュ崟閲?鏃ユ椂闀?濂栧姳閲戦锛?span style="color:#28a745;">缁胯壊杈规=鑷姩璇嗗埆</span></label>
+                <label style="font-size:13px;color:#666;">多期配置（每期一行，格式：有效天数,总单量,日单量,日时长,奖励金额）<span style="color:#28a745;">绿色边框=自动识别</span></label>
                 <textarea id="newPhaseConfig" style="width:100%;height:80px;font-size:12px;border:2px solid #28a745;border-radius:4px;padding:8px;margin-top:8px;" placeholder="26,700,16,6.5,1000&#10;27,900,16,6.5,300">${phaseText}</textarea>
             </div>
             <div style="margin-top:16px;display:flex;gap:12px;">
-                <button class="btn-primary" onclick="addNewPolicy()">娣诲姞鏀跨瓥</button>
-                <button class="btn-export" onclick="document.getElementById('policyFormSection').remove()">鍙栨秷</button>
+                <button class="btn-primary" onclick="addNewPolicy()">添加政策</button>
+                <button class="btn-export" onclick="document.getElementById('policyFormSection').remove()">取消</button>
             </div>
             <div class="file-info" id="policyFormResult"></div>
         </div>`;
@@ -897,22 +950,22 @@
     function validatePolicies(policies){
         const errors=[];
         for(const[code,policy]of Object.entries(policies)){
-            if(!code||code.length<3) errors.push(`鏀跨瓥浠ｇ爜"${code}"澶煭`);
-            if(!policy.name) errors.push(`鏀跨瓥"${code}"缂哄皯鍚嶇О`);
-            if(!policy.city) errors.push(`鏀跨瓥"${policy.name}"缂哄皯鍩庡競`);
-            if(!policy.type||!['single','multi_phase'].includes(policy.type)) errors.push(`鏀跨瓥"${policy.name}"绫诲瀷鏃犳晥`);
+            if(!code||code.length<3) errors.push(`政策代码"${code}"太短`);
+            if(!policy.name) errors.push(`政策"${code}"缺少名称`);
+            if(!policy.city) errors.push(`政策"${policy.name}"缺少城市`);
+            if(!policy.type||!['single','multi_phase'].includes(policy.type)) errors.push(`政策"${policy.name}"类型无效`);
             if(policy.type==='single'){
-                if(!policy.validDaysRequired) errors.push(`鏀跨瓥"${policy.name}"缂哄皯鏈夋晥澶╂暟瑕佹眰`);
-                if(!policy.minOnlineHours) errors.push(`鏀跨瓥"${policy.name}"缂哄皯鏃ュ湪绾挎椂闀胯姹俙);
-                if(!policy.minDailyOrders) errors.push(`鏀跨瓥"${policy.name}"缂哄皯鏃ュ崟閲忚姹俙);
+                if(!policy.validDaysRequired) errors.push(`政策"${policy.name}"缺少有效天数要求`);
+                if(!policy.minOnlineHours) errors.push(`政策"${policy.name}"缺少日在线时长要求`);
+                if(!policy.minDailyOrders) errors.push(`政策"${policy.name}"缺少日单量要求`);
             }else if(policy.type==='multi_phase'){
-                if(!policy.phases||policy.phases.length===0) errors.push(`鏀跨瓥"${policy.name}"缂哄皯闃舵閰嶇疆`);
+                if(!policy.phases||policy.phases.length===0) errors.push(`政策"${policy.name}"缺少阶段配置`);
                 for(let i=0;i<(policy.phases||[]).length;i++){
                     const p=policy.phases[i];
-                    if(!p.validDays) errors.push(`鏀跨瓥"${policy.name}"闃舵${i+1}缂哄皯鏈夋晥澶╂暟`);
-                    if(!p.totalOrders) errors.push(`鏀跨瓥"${policy.name}"闃舵${i+1}缂哄皯鎬诲崟閲廯);
-                    if(!p.dailyHours) errors.push(`鏀跨瓥"${policy.name}"闃舵${i+1}缂哄皯鏃ユ椂闀縛);
-                    if(!p.reward&&p.reward!==0) errors.push(`鏀跨瓥"${policy.name}"闃舵${i+1}缂哄皯濂栧姳閲戦`);
+                    if(!p.validDays) errors.push(`政策"${policy.name}"阶段${i+1}缺少有效天数`);
+                    if(!p.totalOrders) errors.push(`政策"${policy.name}"阶段${i+1}缺少总单量`);
+                    if(!p.dailyHours) errors.push(`政策"${policy.name}"阶段${i+1}缺少日时长`);
+                    if(!p.reward&&p.reward!==0) errors.push(`政策"${policy.name}"阶段${i+1}缺少奖励金额`);
                 }
             }
         }
@@ -928,13 +981,13 @@
         const resultEl=document.getElementById('policyFormResult');
 
         // Strict validation
-        if(!code||code.length<3){resultEl.textContent='鏀跨瓥浠ｇ爜鑷冲皯3涓瓧绗?;resultEl.className='file-info error';return;}
-        if(!name){resultEl.textContent='璇峰～鍐欐斂绛栧悕绉?;resultEl.className='file-info error';return;}
-        if(isNaN(reward)||reward<=0){resultEl.textContent='璇峰～鍐欐湁鏁堢殑濂栧姳閲戦';resultEl.className='file-info error';return;}
+        if(!code||code.length<3){resultEl.textContent='政策代码至少3个字符';resultEl.className='file-info error';return;}
+        if(!name){resultEl.textContent='请填写政策名称';resultEl.className='file-info error';return;}
+        if(isNaN(reward)||reward<=0){resultEl.textContent='请填写有效的奖励金额';resultEl.className='file-info error';return;}
 
         const newPolicy={name,code,city,type,rewardAmount:reward,fullDayHoursCol:'online_hours',peakHoursCol:'online_hours',hasPeaks:false,
             year:parseInt(document.getElementById('newPolicyYear').value)||2026,
-            months:document.getElementById('newPolicyMonths').value?document.getElementById('newPolicyMonths').value.split(/[,锛宂/).map(Number).filter(n=>n>0&&n<=12):[],
+            months:document.getElementById('newPolicyMonths').value?document.getElementById('newPolicyMonths').value.split(/[,，]/).map(Number).filter(n=>n>0&&n<=12):[],
             referrerType:document.getElementById('newPolicyRefType').value||'all',
             stations:[]};
 
@@ -945,9 +998,9 @@
             const dailyHours=parseFloat(document.getElementById('newDailyHours').value);
             const totalOrders=parseInt(document.getElementById('newTotalOrders').value)||0;
 
-            if(isNaN(validDays)||validDays<=0){resultEl.textContent='璇峰～鍐欐湁鏁堢殑澶╂暟瑕佹眰';resultEl.className='file-info error';return;}
-            if(isNaN(dailyOrders)||dailyOrders<=0){resultEl.textContent='璇峰～鍐欐湁鏁堢殑鏃ュ崟閲忚姹?;resultEl.className='file-info error';return;}
-            if(isNaN(dailyHours)||dailyHours<=0){resultEl.textContent='璇峰～鍐欐湁鏁堢殑鏃ュ湪绾挎椂闀?;resultEl.className='file-info error';return;}
+            if(isNaN(validDays)||validDays<=0){resultEl.textContent='请填写有效的天数要求';resultEl.className='file-info error';return;}
+            if(isNaN(dailyOrders)||dailyOrders<=0){resultEl.textContent='请填写有效的日单量要求';resultEl.className='file-info error';return;}
+            if(isNaN(dailyHours)||dailyHours<=0){resultEl.textContent='请填写有效的日在线时长';resultEl.className='file-info error';return;}
 
             newPolicy.validDaysRequired=validDays;
             newPolicy.totalDaysRequired=totalDays;
@@ -956,27 +1009,27 @@
             newPolicy.totalOrdersRequired=totalOrders>0?totalOrders:undefined;
         }else if(type==='multi_phase'){
             const phaseText=document.getElementById('newPhaseConfig').value.trim();
-            if(!phaseText){resultEl.textContent='璇峰～鍐欏鏈熼厤缃?;resultEl.className='file-info error';return;}
+            if(!phaseText){resultEl.textContent='请填写多期配置';resultEl.className='file-info error';return;}
 
             const phases=[];
             const lines=phaseText.split('\n').filter(l=>l.trim());
             for(let i=0;i<lines.length;i++){
                 const line=lines[i].trim();
                 // Try comma-separated format first: 26,700,16,6.5,1000
-                const parts=line.split(/[,锛宂/).map(s=>s.trim());
+                const parts=line.split(/[,，]/).map(s=>s.trim());
                 let validDays,totalOrders,dailyOrders,dailyHours,rewardAmount;
 
                 if(parts.length>=5&&!isNaN(Number(parts[0]))){
                     [validDays,totalOrders,dailyOrders,dailyHours,rewardAmount]=parts.map(Number);
                 }else{
-                    // Flexible format: extract numbers from text like "绗竴鏈?500鍏?26澶?700鍗?
+                    // Flexible format: extract numbers from text like "第一期1500元 26天 700单"
                     const nums=line.match(/\d+\.?\d*/g)||[];
-                    if(nums.length<2){resultEl.textContent=`绗?{i+1}鏈熸暟鎹笉瓒筹紝鑷冲皯闇€瑕佸ぉ鏁板拰閲戦`;resultEl.className='file-info error';return;}
+                    if(nums.length<2){resultEl.textContent=`第${i+1}期数据不足，至少需要天数和金额`;resultEl.className='file-info error';return;}
                     // Try to identify each number by context
-                    const daysMatch=line.match(/(\d+)\s*澶?);
-                    const ordersMatch=line.match(/(\d{2,4})\s*鍗?);
-                    const hoursMatch=line.match(/(\d+\.?\d*)\s*(?:灏忔椂|h)/);
-                    const rewardMatch=line.match(/(\d{3,4})\s*鍏?);
+                    const daysMatch=line.match(/(\d+)\s*天/);
+                    const ordersMatch=line.match(/(\d{2,4})\s*单/);
+                    const hoursMatch=line.match(/(\d+\.?\d*)\s*(?:小时|h)/);
+                    const rewardMatch=line.match(/(\d{3,4})\s*元/);
 
                     validDays=daysMatch?parseInt(daysMatch[1]):(parseInt(nums[0])>10?parseInt(nums[0]):26);
                     totalOrders=ordersMatch?parseInt(ordersMatch[1]):(nums.length>=3?parseInt(nums[1]):700);
@@ -986,7 +1039,7 @@
                 }
 
                 if([validDays,totalOrders,dailyHours,rewardAmount].some(v=>isNaN(v)||v<=0)){
-                    resultEl.textContent=`绗?{i+1}鏈熸暟鍊兼棤鏁堬紝璇锋鏌;resultEl.className='file-info error';return;
+                    resultEl.textContent=`第${i+1}期数值无效，请检查`;resultEl.className='file-info error';return;
                 }
                 phases.push({validDays,totalOrders:totalOrders||700,dailyOrders:dailyOrders||16,dailyHours,reward:rewardAmount});
             }
@@ -1001,9 +1054,9 @@
         // Save to localStorage for persistence
         savePolicies();
 
-        resultEl.textContent=`鏀跨瓥"${name}"娣诲姞鎴愬姛锛佸凡淇濆瓨锛屼笅娆℃墦寮€浠嶅湪銆俙;
+        resultEl.textContent=`政策"${name}"添加成功！已保存，下次打开仍在。`;
         resultEl.className='file-info success';
-        showSuccess(`鏀跨瓥"${name}"宸叉坊鍔燻);
+        showSuccess(`政策"${name}"已添加`);
 
         // Update city selector hint
         onCityChange();
@@ -1021,62 +1074,72 @@
     function extractPhaseNumber(note){
         if(!note) return 0;
         const str=toString(note);
-        const match=str.match(/绗?\s*(\d+|[涓€浜屼笁鍥涗簲鍏竷鍏節鍗乚+)\s*鏈?);
+        const match=str.match(/第?\s*(\d+|[一二三四五六七八九十]+)\s*期/);
         if(!match) return 0;
-        const cnNums={'涓€':1,'浜?:2,'涓?:3,'鍥?:4,'浜?:5,'鍏?:6,'涓?:7,'鍏?:8,'涔?:9,'鍗?:10};
+        const cnNums={'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10};
         const ns=match[1];
         if(cnNums[ns]) return cnNums[ns];
         return parseInt(ns)||0;
     }
 
     /**
-     * 浠庡彂鏀惧娉ㄨ瘑鍒斂绛栵紙鎸夐噾棰濆垽鏂級銆?     * "3000鍒嗕簩涓湀鍙? / "3000鍒嗕笁涓湀鍙? 鈫?鍏艰亴杞叏鑱?000锛?鏈燂紝姣忔湡1000锛?     * "1300鍒嗕袱涓湀鍙? 鈫?浜鸿祫1300锛?鏈燂紝700+600锛?     * "2000鍒嗕袱涓湀鍙? 鈫?鍐呮帹2000锛堜竴娆℃€?000锛?     */
+     * 从发放备注识别政策（按金额判断）。
+     * "3000分二个月发" / "3000分三个月发" → 兼职转全职3000（3期，每期1000）
+     * "1300分两个月发" → 人资1300（2期，700+600）
+     * "2000分两个月发" → 内推2000（一次性2000）
+     */
     function identifyPolicyFromPaymentNote(note){
         if(!note) return null;
         const s=toString(note);
-        // 鎸夐噾棰濊瘑鍒斂绛?        if(s.includes('3000')) return 'april_parttime_3000';
+        // 按金额识别政策
+        if(s.includes('3000')) return 'april_parttime_3000';
         if(s.includes('1300')) return 'may_hr_1300';
         if(s.includes('2000')) return 'may_neitui_2000';
-        // 鍏煎浠庡鍔卞娉ㄨ鏄庤瘑鍒?        if(s.includes('鍐呮帹')) return 'may_neitui_2000';
-        if(s.includes('涓粙')||s.includes('浜鸿祫')) return 'may_hr_1300';
+        // 兼容从奖励备注说明识别
+        if(s.includes('内推')) return 'may_neitui_2000';
+        if(s.includes('中介')||s.includes('人资')) return 'may_hr_1300';
         return null;
     }
 
     /**
-     * 浠庡彂鏀惧娉ㄦ彁鍙栭噾棰濆拰鏈熸暟锛堝"2500浜屾湡"鈫抺amount:2500,phases:2}锛?     */
+     * 从发放备注提取金额和期数（如"2500二期"→{amount:2500,phases:2}）
+     */
     function parsePaymentNote(note){
         if(!note) return {amount:0,phaseCount:0};
         const s=toString(note);
-        // 鎻愬彇閲戦
-        const amountMatch=s.match(/(\d{3,4})\s*(?:鍏億鍧?/)||s.match(/^(\d{3,4})/);
+        // 提取金额
+        const amountMatch=s.match(/(\d{3,4})\s*(?:元|块)/)||s.match(/^(\d{3,4})/);
         const amount=amountMatch?parseInt(amountMatch[1]):0;
-        // 鎻愬彇鏈熸暟锛氭敮鎸?浜屾湡"/"2鏈?/"绗?鏈?/"鍒?涓?/"涓や釜鏈?/"鍒嗕袱鏈?
+        // 提取期数：支持"二期"/"2期"/"第2期"/"分2个"/"两个月"/"分两期"
         let phaseCount=0;
-        const cnMap={'涓€':1,'浜?:2,'涓?:2,'涓?:3,'鍥?:4,'浜?:5,'鍏?:6};
-        // 鍏堣瘯涓枃鏁板瓧+鏈?        const cnPhaseMatch=s.match(/([涓€浜屼袱涓夊洓浜斿叚])\s*鏈?);
+        const cnMap={'一':1,'二':2,'两':2,'三':3,'四':4,'五':5,'六':6};
+        // 先试中文数字+期
+        const cnPhaseMatch=s.match(/([一二两三四五六])\s*期/);
         if(cnPhaseMatch){phaseCount=cnMap[cnPhaseMatch[1]]||0;}
-        // 鍐嶈瘯闃挎媺浼暟瀛?鏈?        if(!phaseCount){const numPhaseMatch=s.match(/(\d+)\s*鏈?);if(numPhaseMatch)phaseCount=parseInt(numPhaseMatch[1]);}
-        // 鍐嶈瘯"鍒哫涓?/"鍒哫涓湀"
+        // 再试阿拉伯数字+期
+        if(!phaseCount){const numPhaseMatch=s.match(/(\d+)\s*期/);if(numPhaseMatch)phaseCount=parseInt(numPhaseMatch[1]);}
+        // 再试"分X个"/"分X个月"
         if(!phaseCount){
-            const splitMatch=s.match(/鍒哱s*([涓€浜屼袱涓夊洓浜斿叚\d])\s*涓?);
+            const splitMatch=s.match(/分\s*([一二两三四五六\d])\s*个/);
             if(splitMatch){const v=splitMatch[1];phaseCount=cnMap[v]||parseInt(v)||0;}
         }
-        // 鍐嶈瘯"X涓湀"
+        // 再试"X个月"
         if(!phaseCount){
-            const monthMatch=s.match(/([涓€浜屼袱涓夊洓浜斿叚\d])\s*涓湀/);
+            const monthMatch=s.match(/([一二两三四五六\d])\s*个月/);
             if(monthMatch){const v=monthMatch[1];phaseCount=cnMap[v]||parseInt(v)||0;}
         }
         return {amount,phaseCount};
     }
 
     /**
-     * 鍔ㄦ€佸垱寤烘斂绛栵紙褰撳彂鏀惧娉ㄧ殑閲戦涓嶅湪鍐呯疆鏀跨瓥涓椂锛?     */
+     * 动态创建政策（当发放备注的金额不在内置政策中时）
+     */
     function getOrCreateDynamicPolicy(amount, phaseCount, city, rewardNote){
         if(!amount||amount<=0) return POLICIES['default'];
         const code='dynamic_'+amount+'_'+phaseCount;
         if(POLICIES[code]) return POLICIES[code];
 
-        const policyName=`${CITY_NAMES[city]||city}-${amount}鍏?${phaseCount}鏈?`;
+        const policyName=`${CITY_NAMES[city]||city}-${amount}元(${phaseCount}期)`;
         const newPolicy={name:policyName,code,city:city||'weifang',year:2026,months:[],referrerType:'all',stations:[],rewardAmount:amount,fullDayHoursCol:'online_hours',peakHoursCol:'online_hours',hasPeaks:false};
 
         if(phaseCount<=1){
@@ -1088,19 +1151,20 @@
         }else{
             newPolicy.type='multi_phase';
             newPolicy.phases=[];
-            // 鏅鸿兘鎻愬彇姣忔湡閲戦锛氫粠濂栧姳澶囨敞璇存槑涓彁鍙?绗竴鏈?500鍏冿紱绗簩鏈?000鍏?鏍煎紡
+            // 智能提取每期金额：从奖励备注说明中提取"第一期1500元；第二期1000元"格式
             const phaseRewards=[];
             if(rewardNote){
-                // 鏂规硶1锛氬尮閰?绗竴鏈?500鍏?銆?绗簩鏈?000鍏?鏍煎紡
-                const cnNums=['涓€','浜?,'涓?,'鍥?,'浜?,'鍏?];
+                // 方法1：匹配"第一期1500元"、"第二期1000元"格式
+                const cnNums=['一','二','三','四','五','六'];
                 for(let i=0;i<phaseCount;i++){
-                    const pat=new RegExp('绗?+cnNums[i]+'鏈?*?(\\d{3,4})\\s*鍏?);
+                    const pat=new RegExp('第'+cnNums[i]+'期.*?(\\d{3,4})\\s*元');
                     const m=rewardNote.match(pat);
                     if(m) phaseRewards.push(parseInt(m[1]));
                 }
-                // 鏂规硶2锛氬鏋滀笂闈㈡病鍖归厤鍒帮紝灏濊瘯鍖归厤"1500鍏冿紱...1000鍏?锛堟寜椤哄簭鎻愬彇锛?                if(phaseRewards.length<phaseCount){
-                    const allAmounts=[...rewardNote.matchAll(/(\d{3,4})\s*鍏?g)].map(m=>parseInt(m[1]));
-                    // 杩囨护鎺夋€婚噾棰濓紙濡傛灉鏈夌殑璇濓級
+                // 方法2：如果上面没匹配到，尝试匹配"1500元；...1000元"（按顺序提取）
+                if(phaseRewards.length<phaseCount){
+                    const allAmounts=[...rewardNote.matchAll(/(\d{3,4})\s*元/g)].map(m=>parseInt(m[1]));
+                    // 过滤掉总金额（如果有的话）
                     const filtered=allAmounts.filter(v=>v!==amount);
                     for(let i=0;i<phaseCount;i++){
                         if(!phaseRewards[i]) phaseRewards.push(filtered[i]||0);
@@ -1123,21 +1187,21 @@
         if(!CITY_POLICIES[city]) CITY_POLICIES[city]=[];
         if(!CITY_POLICIES[city].includes(code)) CITY_POLICIES[city].push(code);
         savePolicies();
-        console.log('[鍔ㄦ€佹斂绛朷 鍒涘缓:', policyName, '鍚勬湡:', newPolicy.phases.map(p=>p.reward));
+        console.log('[动态政策] 创建:', policyName, '各期:', newPolicy.phases.map(p=>p.reward));
         return newPolicy;
     }
 
     function identifyPolicyFromNote(note){
         if(!note) return null;
         const s=toString(note).toLowerCase();
-        if(s.includes('鍐呮帹')&&s.includes('5鏈?)) return 'may_neitui_2000';
-        if(s.includes('鍐呮帹')&&s.includes('6鏈?)) return 'june_neitui_2000';
-        if(s.includes('鍐呮帹')) return 'may_neitui_2000';
-        if(s.includes('浜鸿祫')&&s.includes('5鏈?)) return 'may_hr_1300';
-        if(s.includes('浜鸿祫')&&s.includes('6鏈?)) return 'june_hr_1300';
-        if(s.includes('浜鸿祫')) return 'may_hr_1300';
-        if(s.includes('鍏艰亴')||s.includes('杞叏鑱?)) return 'april_parttime_3000';
-        if(s.includes('鍏ヨ亴鏃犲咖')||s.includes('闈掑矝')) return 'qingdao';
+        if(s.includes('内推')&&s.includes('5月')) return 'may_neitui_2000';
+        if(s.includes('内推')&&s.includes('6月')) return 'june_neitui_2000';
+        if(s.includes('内推')) return 'may_neitui_2000';
+        if(s.includes('人资')&&s.includes('5月')) return 'may_hr_1300';
+        if(s.includes('人资')&&s.includes('6月')) return 'june_hr_1300';
+        if(s.includes('人资')) return 'may_hr_1300';
+        if(s.includes('兼职')||s.includes('转全职')) return 'april_parttime_3000';
+        if(s.includes('入职无忧')||s.includes('青岛')) return 'qingdao';
         return null;
     }
 
@@ -1146,12 +1210,12 @@
         const s=toString(note);
         const phaseNum=extractPhaseNumber(s);
         const policyCode=identifyPolicyFromNote(s);
-        const monthMatch=s.match(/(\d+)鏈?);
-        const month=monthMatch?monthMatch[1]+'鏈?:'';
+        const monthMatch=s.match(/(\d+)月/);
+        const month=monthMatch?monthMatch[1]+'月':'';
         let type='';
-        if(s.includes('鍐呮帹')) type='鍐呮帹';
-        else if(s.includes('涓粙')) type='涓粙';
-        else if(s.includes('浜鸿祫')) type='浜鸿祫';
+        if(s.includes('内推')) type='内推';
+        else if(s.includes('中介')) type='中介';
+        else if(s.includes('人资')) type='人资';
         return {policyCode,month,phaseNum,type,fullNote:s};
     }
 
@@ -1163,13 +1227,13 @@
     function buildHistoryIndex(data){
         if(!data||data.length<2) return {};
         const headers=data[0].map(h=>toString(h).toLowerCase());
-        const referrerIdCol=findColumnIndex(headers,['鍏ヨ亴楠戞墜id','楠戞墜id','浠嬬粛浜篿d','鏀舵楠戞墜id','鎺ㄨ崘浜篿d','鏀舵浜篿d','referrer']);
-        const noteCol=findColumnIndex(headers,['濂栧姳澶囨敞璇存槑','濂栧姳澶囨敞','澶囨敞璇存槑']);
-        const paymentNoteCol=findColumnIndex(headers,['鍙戞斁澶囨敞','payment_note']);
-        const otherNoteCol=findColumnIndex(headers,['鍏跺畠澶囨敞','鍏朵粬澶囨敞','澶囨敞','鍏跺畠']);
-        const rewardCol=findColumnIndex(headers,['濂栧姳閲戦','閲戦','reward','鍙戞斁閲戦']);
-        if(referrerIdCol<0){console.warn('[鍘嗗彶] 鏈壘鍒颁粙缁嶄汉ID鍒?);return {};}
-        console.log('[鍘嗗彶] 鍒楁槧灏?- ID鍒?',referrerIdCol,'濂栧姳澶囨敞:',noteCol,'鍙戞斁澶囨敞:',paymentNoteCol,'鍏跺畠澶囨敞:',otherNoteCol,'閲戦:',rewardCol);
+        const referrerIdCol=findColumnIndex(headers,['入职骑手id','骑手id','介绍人id','收款骑手id','推荐人id','收款人id','referrer']);
+        const noteCol=findColumnIndex(headers,['奖励备注说明','奖励备注','备注说明']);
+        const paymentNoteCol=findColumnIndex(headers,['发放备注','payment_note']);
+        const otherNoteCol=findColumnIndex(headers,['其它备注','其他备注','备注','其它']);
+        const rewardCol=findColumnIndex(headers,['奖励金额','金额','reward','发放金额']);
+        if(referrerIdCol<0){console.warn('[历史] 未找到介绍人ID列');return {};}
+        console.log('[历史] 列映射 - ID列:',referrerIdCol,'奖励备注:',noteCol,'发放备注:',paymentNoteCol,'其它备注:',otherNoteCol,'金额:',rewardCol);
         const index={};
         for(let i=1;i<data.length;i++){
             const row=data[i];
@@ -1197,7 +1261,7 @@
             if(rec.phaseNum>0){phasesPaid.add(rec.phaseNum);if(rec.phaseNum>maxPhase){maxPhase=rec.phaseNum;lastPaymentNote=rec.paymentNote||'';lastOtherNote=rec.otherNote||'';}phaseCounts[rec.phaseNum]=(phaseCounts[rec.phaseNum]||0)+1;}
             if(rec.policyCode) policyCode=rec.policyCode;
         }
-        for(const[phase,count]of Object.entries(phaseCounts)){if(count>1)warnings.push(`绗?{phase}鏈熼噸澶嶅彂鏀?{count}娆);}
+        for(const[phase,count]of Object.entries(phaseCounts)){if(count>1)warnings.push(`第${phase}期重复发放${count}次`);}
         return {maxPhase,phasesPaid:Array.from(phasesPaid).sort((a,b)=>a-b),policyCode,phaseCounts,warnings,paymentNote:lastPaymentNote,otherNote:lastOtherNote};
     }
 
@@ -1208,17 +1272,17 @@
         let nextPhase,isDuplicate=false;
         if(policy.type==='multi_phase'){
             if(history.maxPhase===0){nextPhase=1;}
-            else if(history.maxPhase>=totalPhases){isDuplicate=true;nextPhase=history.maxPhase;warnings.push(`璇ユ斂绛栧叡${totalPhases}鏈燂紝鍘嗗彶宸插彂鍒扮${history.maxPhase}鏈燂紝灞炰簬閲嶅鏍稿疄`);}
+            else if(history.maxPhase>=totalPhases){isDuplicate=true;nextPhase=history.maxPhase;warnings.push(`该政策共${totalPhases}期，历史已发到第${history.maxPhase}期，属于重复核实`);}
             else{nextPhase=history.maxPhase+1;}
         }else{
-            if(history.maxPhase>=1){isDuplicate=true;nextPhase=1;warnings.push('璇ユ斂绛栦负涓€娆℃€у彂鏀撅紝鍘嗗彶宸叉湁鍙戞斁璁板綍锛屽睘浜庨噸澶嶆牳瀹?);}
+            if(history.maxPhase>=1){isDuplicate=true;nextPhase=1;warnings.push('该政策为一次性发放，历史已有发放记录，属于重复核实');}
             else{nextPhase=1;}
         }
         return {nextPhase,totalPhases,historyMaxPhase:history.maxPhase,phasesPaid:history.phasesPaid,isDuplicate,warnings,policyCode:history.policyCode};
     }
 
     // ============================================================
-    // Parse Reward Note (濂栧姳澶囨敞璇存槑)
+    // Parse Reward Note (奖励备注说明)
     // ============================================================
     function parseRewardNote(note){
         if(!note) return {policyCode:null,month:'',phaseNum:0,type:'',fullNote:''};
@@ -1226,15 +1290,15 @@
         const phaseNum=extractPhaseNumber(s);
         const policyCode=identifyPolicyFromNote(s);
 
-        // Extract month (3鏈? 4鏈? 5鏈? 6鏈?
-        const monthMatch=s.match(/(\d+)鏈?);
-        const month=monthMatch?monthMatch[1]+'鏈?:'';
+        // Extract month (3月, 4月, 5月, 6月)
+        const monthMatch=s.match(/(\d+)月/);
+        const month=monthMatch?monthMatch[1]+'月':'';
 
-        // Determine type (鍐呮帹/涓粙/浜鸿祫)
+        // Determine type (内推/中介/人资)
         let type='';
-        if(s.includes('鍐呮帹')) type='鍐呮帹';
-        else if(s.includes('涓粙')) type='涓粙';
-        else if(s.includes('浜鸿祫')) type='浜鸿祫';
+        if(s.includes('内推')) type='内推';
+        else if(s.includes('中介')) type='中介';
+        else if(s.includes('人资')) type='人资';
 
         return {policyCode,month,phaseNum,type,fullNote:s};
     }
@@ -1255,11 +1319,11 @@
     }
     function validateColumnMap(){
         const m=getColMap();
-        if(isNaN(m.riderId)) return '璇烽€夋嫨楠戞墜ID鍒?;
-        if(isNaN(m.period)) return '璇烽€夋嫨鏃舵鍒?;
-        if(isNaN(m.orders)) return '璇烽€夋嫨瀹屽崟閲忓垪';
-        if(isNaN(m.fullDayHours)) return '璇烽€夋嫨鍏ㄥぉ鏃堕暱鍒?;
-        if(isNaN(m.peakHours)) return '璇烽€夋嫨鍒嗘椂娈垫椂闀垮垪';
+        if(isNaN(m.riderId)) return '请选择骑手ID列';
+        if(isNaN(m.period)) return '请选择时段列';
+        if(isNaN(m.orders)) return '请选择完单量列';
+        if(isNaN(m.fullDayHours)) return '请选择全天时长列';
+        if(isNaN(m.peakHours)) return '请选择分时段时长列';
         return null;
     }
 
@@ -1272,11 +1336,14 @@
     }
 
     /**
-     * 鎸夊ぉ姹囨€绘牳瀹烇細鎵€鏈夋斂绛栭€昏緫涓€鏍凤紝鍙槸闃堝€间笉鍚屻€?     * 涓€澶╄鍚屾椂婊¤冻鎵€鏈夋潯浠舵墠绠楁湁鏁堝嚭鍕?澶╋細
-     * A. 鍏ㄥぉ鍦ㄧ嚎鈮h + 鍗堥珮宄扳墺Yh + 鏅氶珮宄扳墺Zh
-     * B. 鍗堥珮宄扳墺M鍗?+ 鏅氶珮宄扳墺N鍗?+ 鏃ユ€诲崟鈮鍗?     */
+     * 按天汇总核实：所有政策逻辑一样，只是阈值不同。
+     * 一天要同时满足所有条件才算有效出勤1天：
+     * A. 全天在线≥Xh + 午高峰≥Yh + 晚高峰≥Zh
+     * B. 午高峰≥M单 + 晚高峰≥N单 + 日总单≥K单
+     */
     function verifyRider(riderId,policy,attendanceRows,colMap){
-        // 绗竴姝ワ細鎸夋棩鏈熷垎缁勬眹鎬?        const dayMap={}; // date -> {fullHours, lunchHours, dinnerHours, lunchOrders, dinnerOrders, totalOrders, totalHours}
+        // 第一步：按日期分组汇总
+        const dayMap={}; // date -> {fullHours, lunchHours, dinnerHours, lunchOrders, dinnerOrders, totalOrders, totalHours}
         let totalDays=0, totalOrders=0;
 
         for(const row of attendanceRows){
@@ -1288,7 +1355,7 @@
             const hours=getHoursForRow(row,colMap,period);
             totalOrders+=orders;
 
-            // 鐢ㄦ棩鏈熶綔涓簁ey锛屽綊涓€鍖栦负YYYY/MM/DD鏍煎紡
+            // 用日期作为key，归一化为YYYY/MM/DD格式
             const dateVal=row[colMap.date];
             const dateKey=formatDate(dateVal)||toString(dateVal);
             if(!dayMap[dateKey]) dayMap[dateKey]={fullHours:0,lunchHours:0,dinnerHours:0,lunchOrders:0,dinnerOrders:0,totalOrders:0,totalHours:0};
@@ -1309,27 +1376,30 @@
             d.totalOrders+=orders;
         }
 
-        // 璋冭瘯锛氭墦鍗板墠3鏉¤褰曠殑鏃舵鍊?        let debugCount=0;
+        // 调试：打印前3条记录的时段值
+        let debugCount=0;
         for(const row of attendanceRows){
             const rowRiderId=toString(row[colMap.riderId]);
             if(rowRiderId!==riderId) continue;
             const p=toString(row[colMap.period]);
-            if(debugCount<3){console.log('[鏍稿疄-debug] 楠戞墜'+riderId+'鏃舵鍊?"'+p+'" 瀛楄妭:',[...p].map(c=>c.charCodeAt(0)));debugCount++;}
+            if(debugCount<3){console.log('[核实-debug] 骑手'+riderId+'时段值:"'+p+'" 字节:',[...p].map(c=>c.charCodeAt(0)));debugCount++;}
             break;
         }
-        // 缁熻鏃舵鍒嗗竷
+        // 统计时段分布
         const periodStats={};
         for(const row of attendanceRows){
             if(toString(row[colMap.riderId])!==riderId) continue;
             const p=toString(row[colMap.period]);
             periodStats[p]=(periodStats[p]||0)+1;
         }
-        if(Object.keys(periodStats).length>0) console.log('[鏍稿疄-debug] 楠戞墜'+riderId+'鏃舵鍒嗗竷:',periodStats);
+        if(Object.keys(periodStats).length>0) console.log('[核实-debug] 骑手'+riderId+'时段分布:',periodStats);
         let validDays=0, validOrders=0;
 
-        // 鑾峰彇鏀跨瓥闃堝€?        let minFullHours, minLunchHours, minDinnerHours, minLunchOrders, minDinnerOrders, minDailyOrders;
+        // 获取政策阈值
+        let minFullHours, minLunchHours, minDinnerHours, minLunchOrders, minDinnerOrders, minDailyOrders;
         if(policy.type==='multi_phase'){
-            const phase=policy.phases[0]; // 鐢ㄧ涓€鏈熼槇鍊?            minFullHours=phase.dailyHours;
+            const phase=policy.phases[0]; // 用第一期阈值
+            minFullHours=phase.dailyHours;
             minLunchHours=2.5;
             minDinnerHours=2;
             minLunchOrders=5;
@@ -1345,14 +1415,15 @@
         }
 
         for(const[dateKey,d]of Object.entries(dayMap)){
-            // 鎵€鏈夋潯浠跺悓鏃舵弧瓒虫墠绠楁湁鏁堝嚭鍕?澶?            const fullOk=d.fullHours>=minFullHours;
+            // 所有条件同时满足才算有效出勤1天
+            const fullOk=d.fullHours>=minFullHours;
             const lunchOk=d.lunchHours>=minLunchHours&&d.lunchOrders>=minLunchOrders;
             const dinnerOk=d.dinnerHours>=minDinnerHours&&d.dinnerOrders>=minDinnerOrders;
             const ordersOk=d.totalOrders>=minDailyOrders;
 
             if(fullOk&&lunchOk&&dinnerOk&&ordersOk){
                 validDays++;
-                validOrders+=d.totalOrders; // 杈炬爣閭ｅぉ鐨勫叏閮ㄥ崟閲忥紙鍏ㄥぉ+鍗堥珮宄?鏅氶珮宄帮級
+                validOrders+=d.totalOrders; // 达标那天的全部单量（全天+午高峰+晚高峰）
             }
         }
 
@@ -1367,12 +1438,12 @@
                 if(phasePassed){passedPhases++;reward+=phase.reward;}
             }
             passed=passedPhases>0;
-            phaseInfo=phaseResults.map(pr=>`闃舵${pr.phase}:${pr.validDays}/${pr.requiredDays}澶?${pr.totalOrders}/${pr.requiredOrders}鍗?{pr.passed?'鉁?:'鉁?}`).join('; ');
+            phaseInfo=phaseResults.map(pr=>`阶段${pr.phase}:${pr.validDays}/${pr.requiredDays}天,${pr.totalOrders}/${pr.requiredOrders}单${pr.passed?'✓':'✗'}`).join('; ');
         }else{
             passed=validDays>=policy.validDaysRequired;
             if(policy.totalOrdersRequired&&policy.totalOrdersRequired>0) passed=passed&&(totalOrders>=policy.totalOrdersRequired);
-            phaseInfo=`鏈夋晥澶╂暟:${validDays}/${policy.validDaysRequired}`;
-            if(policy.totalOrdersRequired) phaseInfo+=`,鎬诲崟閲?${totalOrders}/${policy.totalOrdersRequired}`;
+            phaseInfo=`有效天数:${validDays}/${policy.validDaysRequired}`;
+            if(policy.totalOrdersRequired) phaseInfo+=`,总单量:${totalOrders}/${policy.totalOrdersRequired}`;
             if(passed) reward=policy.rewardAmount||0;
         }
         return {riderId,totalDays,validDays,totalOrders,validOrders,phaseInfo,passed,reward,policyName:policy.name,policy};
@@ -1382,27 +1453,27 @@
     // Main Verification
     // ============================================================
     async function startVerification(){
-        if(!attendanceData||attendanceData.length<2){showError('璇峰厛涓婁紶鑰冨嫟鏂囦欢');return;}
-        if(!riderListData||riderListData.length<2){showError('璇蜂笂浼犻獞鎵嬪悕鍗曟枃浠?);return;}
+        if(!attendanceData||attendanceData.length<2){showError('请先上传考勤文件');return;}
+        if(!riderListData||riderListData.length<2){showError('请上传骑手名单文件');return;}
         const colMapErr=validateColumnMap();
         if(colMapErr){showError(colMapErr);return;}
         const colMap=getColMap();
 
         // Find columns in rider list
         const rlHeaders=riderListData[0].map(h=>toString(h).toLowerCase());
-        const rlRiderIdCol=findColumnIndex(rlHeaders,['楠戞墜id','楠戞墜缂栧彿','鍏ヨ亴楠戞墜id','id']);
-        const rlNameCol=findColumnIndex(rlHeaders,['濮撳悕','楠戞墜濮撳悕','鍏ヨ亴楠戞墜濮撳悕','name']);
-        const rlNoteCol=findColumnIndex(rlHeaders,['濂栧姳澶囨敞璇存槑','濂栧姳澶囨敞','澶囨敞璇存槑','澶囨敞']);
-        const rlIssueDateCol=findColumnIndex(rlHeaders,['鍏ヨ亴鏃ユ湡','鏃ユ湡','issue_date','date']);
-        const rlPaymentNoteCol=findColumnIndex(rlHeaders,['鍙戞斁澶囨敞','payment_note','澶囨敞']);
-        const rlReferrerIdCol=findColumnIndex(rlHeaders,['鏀舵浜篿d','浠嬬粛浜篿d','鎺ㄨ崘浜篿d','referrer']);
-        // 绔欑偣鍜屾帹鑽愪汉鍒?- 鐢ㄤ簬鑷姩鍖归厤鏀跨瓥
-        const rlStationCol=findColumnIndex(rlHeaders,['绔欑偣','绔欑偣鍚嶇О','station','鍏ヨ亴绔欑偣','鍥㈤槦']);
-        const rlReferrerTypeCol=findColumnIndex(rlHeaders,['鎺ㄨ崘浜?,'鎺ㄨ崘浜虹被鍨?,'referrer_type','鍐呮帹/涓粙','绫诲瀷']);
+        const rlRiderIdCol=findColumnIndex(rlHeaders,['骑手id','骑手编号','入职骑手id','id']);
+        const rlNameCol=findColumnIndex(rlHeaders,['姓名','骑手姓名','入职骑手姓名','name']);
+        const rlNoteCol=findColumnIndex(rlHeaders,['奖励备注说明','奖励备注','备注说明','备注']);
+        const rlIssueDateCol=findColumnIndex(rlHeaders,['入职日期','日期','issue_date','date']);
+        const rlPaymentNoteCol=findColumnIndex(rlHeaders,['发放备注','payment_note','备注']);
+        const rlReferrerIdCol=findColumnIndex(rlHeaders,['收款人id','介绍人id','推荐人id','referrer']);
+        // 站点和推荐人列 - 用于自动匹配政策
+        const rlStationCol=findColumnIndex(rlHeaders,['站点','站点名称','station','入职站点','团队']);
+        const rlReferrerTypeCol=findColumnIndex(rlHeaders,['推荐人','推荐人类型','referrer_type','内推/中介','类型']);
 
-        if(rlRiderIdCol<0){showError('楠戞墜鍚嶅崟涓湭鎵惧埌楠戞墜ID鍒椼€傚彲鐢ㄥ垪: '+riderListData[0].map(h=>toString(h)).join('銆?));return;}
+        if(rlRiderIdCol<0){showError('骑手名单中未找到骑手ID列。可用列: '+riderListData[0].map(h=>toString(h)).join('、'));return;}
 
-        console.log('[鏍稿疄] 楠戞墜鍚嶅崟鍒楁槧灏?- ID:',rlRiderIdCol,'濮撳悕:',rlNameCol,'鍏ヨ亴鏃ユ湡:',rlIssueDateCol,'绔欑偣:',rlStationCol,'鎺ㄨ崘浜?',rlReferrerTypeCol,'鍙戞斁澶囨敞:',rlPaymentNoteCol);
+        console.log('[核实] 骑手名单列映射 - ID:',rlRiderIdCol,'姓名:',rlNameCol,'入职日期:',rlIssueDateCol,'站点:',rlStationCol,'推荐人:',rlReferrerTypeCol,'发放备注:',rlPaymentNoteCol);
 
         document.getElementById('loadingOverlay').classList.add('show');
 
@@ -1424,59 +1495,63 @@
                     const referrerType=rlReferrerTypeCol>=0?toString(row[rlReferrerTypeCol]):'';
                     const referrerId=rlReferrerIdCol>=0?toString(row[rlReferrerIdCol]):riderId;
 
-                    // 1. 鏍规嵁鍏ヨ亴鏃ユ湡銆佺珯鐐广€佹帹鑽愪汉鑷姩鍖归厤鏀跨瓥
+                    // 1. 根据入职日期、站点、推荐人自动匹配政策
                     let policy=matchPolicyByRider(issueDate,station,referrerType,currentCity);
-                    console.log('[鏍稿疄] 楠戞墜'+riderId+'('+name+') 鍏ヨ亴:'+issueDate+' 绔欑偣:'+station+' 鎺ㄨ崘浜?'+referrerType+' 鈫?鍖归厤鏀跨瓥:'+policy.name);
+                    console.log('[核实] 骑手'+riderId+'('+name+') 入职:'+issueDate+' 站点:'+station+' 推荐人:'+referrerType+' → 匹配政策:'+policy.name);
 
-                    // 2. 浠庡巻鍙插彂鏀捐褰曟煡璇ユ敹娆句汉宸插彂鍒扮鍑犳湡
+                    // 2. 从历史发放记录查该收款人已发到第几期
                     const history=getHistorySummary(referrerId);
                     const historyMaxPhase=history.maxPhase;
                     const phasesPaid=history.phasesPaid;
-                    const historyDetail=phasesPaid.length>0?phasesPaid.map(p=>'绗?+p+'鏈?).join(','):'鏃?;
+                    const historyDetail=phasesPaid.length>0?phasesPaid.map(p=>'第'+p+'期').join(','):'无';
 
-                    // 鍒濆鍖栬鍛婃暟缁?                    const warnings=[];
+                    // 初始化警告数组
+                    const warnings=[];
                     let isDuplicate=false;
 
-                    // 瀵规瘮鍘嗗彶鍙戞斁澶囨敞鍜屽綋鍓嶅彂鏀惧娉?                    if(history.paymentNote&&paymentNote){
+                    // 对比历史发放备注和当前发放备注
+                    if(history.paymentNote&&paymentNote){
                         const histNote=toString(history.paymentNote);
                         const currNote=toString(paymentNote);
-                        // 鎻愬彇閲戦瀵规瘮
+                        // 提取金额对比
                         const histAmount=histNote.match(/(\d{3,4})/);
                         const currAmount=currNote.match(/(\d{3,4})/);
                         if(histAmount&&currAmount&&histAmount[1]!==currAmount[1]){
-                            warnings.push(`鈿犲巻鍙插彂鏀?${histNote}"(${histAmount[1]}鍏?涓庡綋鍓?${currNote}"(${currAmount[1]}鍏?閲戦涓嶄竴鑷碻);
+                            warnings.push(`⚠历史发放"${histNote}"(${histAmount[1]}元)与当前"${currNote}"(${currAmount[1]}元)金额不一致`);
                         }
-                        // 鎻愬彇鏈熸暟瀵规瘮
-                        const cnMap2={'涓€':1,'浜?:2,'涓?:2,'涓?:3};
-                        const histPhaseMatch=histNote.match(/([涓€浜屼袱涓夊洓浜斿叚\d])\s*鏈?);
-                        const currPhaseMatch=currNote.match(/([涓€浜屼袱涓夊洓浜斿叚\d])\s*鏈?);
+                        // 提取期数对比
+                        const cnMap2={'一':1,'二':2,'两':2,'三':3};
+                        const histPhaseMatch=histNote.match(/([一二两三四五六\d])\s*期/);
+                        const currPhaseMatch=currNote.match(/([一二两三四五六\d])\s*期/);
                         if(histPhaseMatch&&currPhaseMatch){
                             const hp=cnMap2[histPhaseMatch[1]]||parseInt(histPhaseMatch[1]);
                             const cp=cnMap2[currPhaseMatch[1]]||parseInt(currPhaseMatch[1]);
-                            if(hp!==cp) warnings.push(`鈿犲巻鍙叉湡鏁?${hp}鏈?涓庡綋鍓嶆湡鏁?${cp}鏈?涓嶄竴鑷碻);
+                            if(hp!==cp) warnings.push(`⚠历史期数(${hp}期)与当前期数(${cp}期)不一致`);
                         }
-                        // 妫€鏌ュ巻鍙?鍏跺畠澶囨敞"鍒楋紙濡?2200/3鏈?锛?                        if(history.otherNote){
+                        // 检查历史"其它备注"列（如"2200/3期"）
+                        if(history.otherNote){
                             const otherNote=toString(history.otherNote);
                             const otherAmount=otherNote.match(/(\d{3,4})/);
                             if(otherAmount&&currAmount&&otherAmount[1]!==currAmount[1]){
-                                warnings.push(`鈿犲巻鍙插叾瀹冨娉?${otherNote}"涓庡綋鍓?${currNote}"鏀跨瓥涓嶅悓`);
+                                warnings.push(`⚠历史其它备注"${otherNote}"与当前"${currNote}"政策不同`);
                             }
                         }
                     }
 
-                    // 3. 搴斿彂鏈熸暟 = 鍘嗗彶鏈€澶ф湡鏁?+ 1
+                    // 3. 应发期数 = 历史最大期数 + 1
                     const expectedPhase=historyMaxPhase+1;
 
-                    // 4. 閲嶅/瓒呮湡妫€娴?                    const totalPhases=policy.phases?policy.phases.length:1;
+                    // 4. 重复/超期检测
+                    const totalPhases=policy.phases?policy.phases.length:1;
                     if(expectedPhase>totalPhases){
                         isDuplicate=true;
-                        warnings.push(`璇ユ斂绛栧叡${totalPhases}鏈燂紝鍘嗗彶宸插彂鍒扮${historyMaxPhase}鏈燂紝鏃犳洿澶氭湡鏁板彲鍙慲);
+                        warnings.push(`该政策共${totalPhases}期，历史已发到第${historyMaxPhase}期，无更多期数可发`);
                     }
                     if(history.phaseCounts[expectedPhase]&&history.phaseCounts[expectedPhase]>1){
-                        warnings.push(`绗?{expectedPhase}鏈熷湪鍘嗗彶涓噸澶嶅彂鏀?{history.phaseCounts[expectedPhase]}娆);
+                        warnings.push(`第${expectedPhase}期在历史中重复发放${history.phaseCounts[expectedPhase]}次`);
                     }
 
-                    // 6. 鏍稿疄鑰冨嫟鏁版嵁
+                    // 6. 核实考勤数据
                     const result=verifyRider(riderId,policy,attendanceRows,colMap);
                     result.name=name;
                     result.issueDate=issueDate;
@@ -1490,7 +1565,7 @@
                     result.isDuplicate=isDuplicate;
                     result.warnings=warnings;
 
-                    // 6. 璁＄畻搴斿彂閲戦锛氬彧鍙戝綋鍓嶈繖涓€鏈熺殑濂栧姳
+                    // 6. 计算应发金额：只发当前这一期的奖励
                     if(isDuplicate){
                         result.reward=0;
                     }else if(!result.passed){
@@ -1505,10 +1580,10 @@
                 }
 
                 displayResults();
-                showSuccess(`鏍稿疄瀹屾垚锛佸叡澶勭悊 ${verificationResults.length} 鍚嶉獞鎵媊);
+                showSuccess(`核实完成！共处理 ${verificationResults.length} 名骑手`);
             }catch(err){
-                console.error('[鏍稿疄] 瀹屾暣閿欒:',err);
-                showError('鏍稿疄鍑洪敊: '+err.message+'銆傝鎸塅12鏌ョ湅鎺у埗鍙般€?);
+                console.error('[核实] 完整错误:',err);
+                showError('核实出错: '+err.message+'。请按F12查看控制台。');
             }finally{
                 document.getElementById('loadingOverlay').classList.remove('show');
             }
@@ -1550,45 +1625,45 @@
             let requiredDays='';
             if(pol.type==='multi_phase'){
                 const targetPhase=pol.phases[r.expectedPhase-1]||pol.phases[0];
-                requiredDays=targetPhase.validDays+'澶?;
+                requiredDays=targetPhase.validDays+'天';
             }else{
-                requiredDays=pol.validDaysRequired+'澶?;
+                requiredDays=pol.validDaysRequired+'天';
             }
 
             // Total orders required
             let requiredOrders='';
             if(pol.type==='multi_phase'){
                 const targetPhase=pol.phases[r.expectedPhase-1]||pol.phases[0];
-                requiredOrders=targetPhase.totalOrders+'鍗?;
+                requiredOrders=targetPhase.totalOrders+'单';
             }else if(pol.totalOrdersRequired){
-                requiredOrders=pol.totalOrdersRequired+'鍗?;
+                requiredOrders=pol.totalOrdersRequired+'单';
             }else{
                 requiredOrders='-';
             }
 
             // History phase detail
-            const historyDetail=r.historyDetail||'鏃?;
+            const historyDetail=r.historyDetail||'无';
 
             // Status badge
             let statusBadge='';
             if(r.isDuplicate){
-                statusBadge='<span class="badge badge-warn">閲嶅</span>';
+                statusBadge='<span class="badge badge-warn">重复</span>';
                 tr.classList.add('warning-row');
             }else if(r.passed){
-                statusBadge='<span class="badge badge-pass">杈炬爣</span>';
+                statusBadge='<span class="badge badge-pass">达标</span>';
             }else{
-                statusBadge='<span class="badge badge-fail">涓嶈揪鏍?/span>';
+                statusBadge='<span class="badge badge-fail">不达标</span>';
             }
 
             // Warnings tooltip
             const warningText=r.warnings.length>0?r.warnings.join('; '):'';
 
-            // Policy display name with phase (e.g., "娼嶅潑-浜鸿祫1300锛堢2鏈燂級")
+            // Policy display name with phase (e.g., "潍坊-人资1300（第2期）")
             let policyDisplayName=r.policyName;
             if(pol.type==='multi_phase'){
-                policyDisplayName+=`锛堢${r.expectedPhase}鏈燂級`;
+                policyDisplayName+=`（第${r.expectedPhase}期）`;
             }else if(pol.rewardAmount>0){
-                policyDisplayName+=`锛堜竴娆℃€э級`;
+                policyDisplayName+=`（一次性）`;
             }
 
             tr.innerHTML=`
@@ -1598,17 +1673,17 @@
                 <td>${r.paymentNote||'-'}</td>
                 <td title="${r.rewardNote}">${r.rewardNote||'-'}</td>
                 <td style="font-size:11px;">${policyDisplayName}</td>
-                <td>绗?{r.expectedPhase}鏈?/td>
-                <td>${r.historyMaxPhase>0?'绗?+r.historyMaxPhase+'鏈?:'鏃?}</td>
+                <td>第${r.expectedPhase}期</td>
+                <td>${r.historyMaxPhase>0?'第'+r.historyMaxPhase+'期':'无'}</td>
                 <td style="font-size:11px;">${historyDetail}</td>
                 <td>${dailyHours}</td>
                 <td>${requiredDays}</td>
                 <td>${requiredOrders}</td>
-                <td>${r.validDays}澶?/td>
-                <td>${r.totalOrders}鍗?/td>
+                <td>${r.validDays}天</td>
+                <td>${r.totalOrders}单</td>
                 <td>${statusBadge}</td>
-                <td>${r.reward>0?'楼'+r.reward:'-'}</td>
-                <td style="font-size:11px;color:#dc3545;" title="${warningText}">${warningText?'鈿狅笍':''}</td>
+                <td>${r.reward>0?'¥'+r.reward:'-'}</td>
+                <td style="font-size:11px;color:#dc3545;" title="${warningText}">${warningText?'⚠️':''}</td>
             `;
             tbody.appendChild(tr);
         }
@@ -1620,7 +1695,7 @@
     // Export Functions
     // ============================================================
     function exportResults(format){
-        if(verificationResults.length===0){showError('娌℃湁鍙鍑虹殑鏁版嵁');return;}
+        if(verificationResults.length===0){showError('没有可导出的数据');return;}
         if(format==='xlsx') exportToXLSX();
         else if(format==='csv') exportToCSV();
     }
@@ -1628,28 +1703,30 @@
     function exportToXLSX(){
         const wb=XLSX.utils.book_new();
 
-        // Sheet 1: 鏍稿疄缁撴灉姹囨€?        const headers=['ID','濮撳悕','鍏ヨ亴鏃ユ湡','鍙戞斁澶囨敞','濂栧姳澶囨敞璇存槑','鏀跨瓥','搴斿彂鏈熸暟','鍘嗗彶宸插彂鏈熸暟','鍘嗗彶鏈熸暟鏄庣粏','鍘嗗彶鍙戞斁澶囨敞','鍘嗗彶鍏跺畠澶囨敞','姣忔棩闇€鏃?,'闇€鐧惧ぉ鏁?,'闇€鎬诲崟閲?,'鏈夋晥澶╂暟','鎬诲崟閲?,'杈炬爣','搴斿彂閲戦','鐘舵€?];
+        // Sheet 1: 核实结果汇总
+        const headers=['ID','姓名','入职日期','发放备注','奖励备注说明','政策','应发期数','历史已发期数','历史期数明细','历史发放备注','历史其它备注','每日需时','需百天数','需总单量','有效天数','总单量','达标','应发金额','状态'];
         const data=[headers];
         for(const r of verificationResults){
             const pol=r.policy||POLICIES['default'];
             let dailyHours='',requiredDays='',requiredOrders='';
-            if(pol.type==='multi_phase'){const tp=pol.phases[r.expectedPhase-1]||pol.phases[0];dailyHours=tp.dailyHours+'h';requiredDays=tp.validDays+'澶?;requiredOrders=tp.totalOrders+'鍗?;}
-            else{dailyHours=pol.minOnlineHours+'h';requiredDays=pol.validDaysRequired+'澶?;requiredOrders=pol.totalOrdersRequired?pol.totalOrdersRequired+'鍗?:'-';}
-            const status=r.isDuplicate?'閲嶅':(r.passed?'杈炬爣':'涓嶈揪鏍?);
-            data.push([r.riderId,r.name||'',r.issueDate||'',r.paymentNote||'',r.rewardNote||'',r.policyName,'绗?+r.expectedPhase+'鏈?,r.historyMaxPhase>0?'绗?+r.historyMaxPhase+'鏈?:'鏃?,r.historyDetail,r.historyPaymentNote||'',r.historyOtherNote||'',dailyHours,requiredDays,requiredOrders,r.validDays+'澶?,r.validOrders+'鍗?,status,r.reward>0?r.reward:0,r.warnings.join('; ')]);
+            if(pol.type==='multi_phase'){const tp=pol.phases[r.expectedPhase-1]||pol.phases[0];dailyHours=tp.dailyHours+'h';requiredDays=tp.validDays+'天';requiredOrders=tp.totalOrders+'单';}
+            else{dailyHours=pol.minOnlineHours+'h';requiredDays=pol.validDaysRequired+'天';requiredOrders=pol.totalOrdersRequired?pol.totalOrdersRequired+'单':'-';}
+            const status=r.isDuplicate?'重复':(r.passed?'达标':'不达标');
+            data.push([r.riderId,r.name||'',r.issueDate||'',r.paymentNote||'',r.rewardNote||'',r.policyName,'第'+r.expectedPhase+'期',r.historyMaxPhase>0?'第'+r.historyMaxPhase+'期':'无',r.historyDetail,r.historyPaymentNote||'',r.historyOtherNote||'',dailyHours,requiredDays,requiredOrders,r.validDays+'天',r.validOrders+'单',status,r.reward>0?r.reward:0,r.warnings.join('; ')]);
         }
         const ws1=XLSX.utils.aoa_to_sheet(data);
         ws1['!cols']=[{wch:15},{wch:10},{wch:12},{wch:15},{wch:20},{wch:18},{wch:10},{wch:12},{wch:15},{wch:20},{wch:15},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:8},{wch:10},{wch:30}];
-        // 琛ㄥご鏌撹摑鑹?        for(let c=0;c<headers.length;c++){
+        // 表头染蓝色
+        for(let c=0;c<headers.length;c++){
             const cell=XLSX.utils.encode_cell({r:0,c:c});
             if(ws1[cell]){ws1[cell].s={fill:{fgColor:{rgb:'FF4472C4'}},font:{color:{rgb:'FFFFFFFF'},bold:true}};}
         }
-        XLSX.utils.book_append_sheet(wb,ws1,'鏍稿疄缁撴灉');
+        XLSX.utils.book_append_sheet(wb,ws1,'核实结果');
 
-        // Sheet 2: 閫愭棩鏄庣粏
+        // Sheet 2: 逐日明细
         const colMap=getColMap();
         const attendanceRows=attendanceData?attendanceData.slice(1):[];
-        const detailHeaders=['楠戞墜ID','濮撳悕','鏀跨瓥','搴斿彂鏈熸暟','鏃ユ湡','瀹屽崟閲?,'鏈夋晥鏃堕暱','鍗曢噺杈炬爣','鏃堕暱杈炬爣','鏈夋晥鍑哄嫟','涓嶈揪鏍囧師鍥?];
+        const detailHeaders=['骑手ID','姓名','政策','应发期数','日期','完单量','有效时长','单量达标','时长达标','有效出勤','不达标原因'];
         const detailData=[detailHeaders];
 
         for(const r of verificationResults){
@@ -1670,23 +1747,23 @@
                 let orderPass=true, hoursPass=true, validAttendance=true;
                 const reasons=[];
                 if(isFullDay(period)){
-                    if(orders<minDailyOrders){orderPass=false;reasons.push('鍗曢噺'+orders+'<'+minDailyOrders);}
-                    if(hours<minHours){hoursPass=false;reasons.push('鏃堕暱'+hours.toFixed(1)+'h<'+minHours+'h');}
+                    if(orders<minDailyOrders){orderPass=false;reasons.push('单量'+orders+'<'+minDailyOrders);}
+                    if(hours<minHours){hoursPass=false;reasons.push('时长'+hours.toFixed(1)+'h<'+minHours+'h');}
                     validAttendance=orderPass&&hoursPass;
                 }else if(isLunchPeak(period)){
                     const lunchMinH=pol.lunchMinHours||2.5;
                     const lunchMinO=pol.lunchMinOrders||4;
-                    if(hours<lunchMinH){hoursPass=false;reasons.push('鍗堥珮宄版椂闀?+hours.toFixed(1)+'h<'+lunchMinH+'h');}
-                    if(orders<lunchMinO){orderPass=false;reasons.push('鍗堥珮宄板崟閲?+orders+'<'+lunchMinO);}
+                    if(hours<lunchMinH){hoursPass=false;reasons.push('午高峰时长'+hours.toFixed(1)+'h<'+lunchMinH+'h');}
+                    if(orders<lunchMinO){orderPass=false;reasons.push('午高峰单量'+orders+'<'+lunchMinO);}
                 }else if(isDinnerPeak(period)){
                     const dinnerMinH=pol.dinnerMinHours||2;
-                    if(hours<dinnerMinH){hoursPass=false;reasons.push('鏅氶珮宄版椂闀?+hours.toFixed(1)+'h<'+dinnerMinH+'h');}
+                    if(hours<dinnerMinH){hoursPass=false;reasons.push('晚高峰时长'+hours.toFixed(1)+'h<'+dinnerMinH+'h');}
                 }
 
                 detailData.push([
-                    r.riderId,r.name||'',r.policyName,'绗?+r.expectedPhase+'鏈?,
+                    r.riderId,r.name||'',r.policyName,'第'+r.expectedPhase+'期',
                     dateStr,orders,hours.toFixed(2)+'h',
-                    orderPass?'鏄?:'鍚?,hoursPass?'鏄?:'鍚?,validAttendance?'鏄?:'鍚?,
+                    orderPass?'是':'否',hoursPass?'是':'否',validAttendance?'是':'否',
                     reasons.join(';')
                 ]);
             }
@@ -1694,32 +1771,32 @@
 
         const ws2=XLSX.utils.aoa_to_sheet(detailData);
         ws2['!cols']=[{wch:15},{wch:10},{wch:18},{wch:10},{wch:14},{wch:10},{wch:12},{wch:10},{wch:10},{wch:10},{wch:30}];
-        XLSX.utils.book_append_sheet(wb,ws2,'閫愭棩鏄庣粏');
+        XLSX.utils.book_append_sheet(wb,ws2,'逐日明细');
 
         const ts=new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
-        XLSX.writeFile(wb,`鏍稿疄缁撴灉_${ts}.xlsx`);
-        showSuccess('Excel 鏂囦欢宸插鍑猴紙鍚牳瀹炵粨鏋?閫愭棩鏄庣粏锛?);
+        XLSX.writeFile(wb,`核实结果_${ts}.xlsx`);
+        showSuccess('Excel 文件已导出（含核实结果+逐日明细）');
     }
 
     function exportToCSV(){
         let csv='\ufeff';
-        csv+='ID,濮撳悕,鍏ヨ亴鏃ユ湡,鍙戞斁澶囨敞,濂栧姳澶囨敞璇存槑,鏀跨瓥,搴斿彂鏈熸暟,鍘嗗彶宸插彂鏈熸暟,鍘嗗彶鏈熸暟鏄庣粏,姣忔棩闇€鏃?闇€鐧惧ぉ鏁?闇€鎬诲崟閲?鏈夋晥澶╂暟,鎬诲崟閲?杈炬爣,搴斿彂閲戦,鐘舵€乗n';
+        csv+='ID,姓名,入职日期,发放备注,奖励备注说明,政策,应发期数,历史已发期数,历史期数明细,每日需时,需百天数,需总单量,有效天数,总单量,达标,应发金额,状态\n';
         for(const r of verificationResults){
             const pol=r.policy||POLICIES['default'];
             let dailyHours='',requiredDays='',requiredOrders='';
-            if(pol.type==='multi_phase'){const tp=pol.phases[r.expectedPhase-1]||pol.phases[0];dailyHours=tp.dailyHours+'h';requiredDays=tp.validDays+'澶?;requiredOrders=tp.totalOrders+'鍗?;}
-            else{dailyHours=pol.minOnlineHours+'h';requiredDays=pol.validDaysRequired+'澶?;requiredOrders=pol.totalOrdersRequired?pol.totalOrdersRequired+'鍗?:'-';}
-            const status=r.isDuplicate?'閲嶅':(r.passed?'杈炬爣':'涓嶈揪鏍?);
-            const fields=[r.riderId,r.name||'',r.issueDate||'',r.paymentNote||'',r.rewardNote||'',r.policyName,'绗?+r.expectedPhase+'鏈?,r.historyMaxPhase>0?'绗?+r.historyMaxPhase+'鏈?:'鏃?,r.historyDetail,dailyHours,requiredDays,requiredOrders,r.validDays+'澶?,r.totalOrders+'鍗?,status,r.reward>0?r.reward:0,r.warnings.join('; ')];
+            if(pol.type==='multi_phase'){const tp=pol.phases[r.expectedPhase-1]||pol.phases[0];dailyHours=tp.dailyHours+'h';requiredDays=tp.validDays+'天';requiredOrders=tp.totalOrders+'单';}
+            else{dailyHours=pol.minOnlineHours+'h';requiredDays=pol.validDaysRequired+'天';requiredOrders=pol.totalOrdersRequired?pol.totalOrdersRequired+'单':'-';}
+            const status=r.isDuplicate?'重复':(r.passed?'达标':'不达标');
+            const fields=[r.riderId,r.name||'',r.issueDate||'',r.paymentNote||'',r.rewardNote||'',r.policyName,'第'+r.expectedPhase+'期',r.historyMaxPhase>0?'第'+r.historyMaxPhase+'期':'无',r.historyDetail,dailyHours,requiredDays,requiredOrders,r.validDays+'天',r.totalOrders+'单',status,r.reward>0?r.reward:0,r.warnings.join('; ')];
             csv+=fields.map(f=>'"'+String(f).replace(/"/g,'""')+'"').join(',')+'\n';
         }
         const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
         const url=URL.createObjectURL(blob);
         const a=document.createElement('a');a.href=url;
         const ts=new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
-        a.download=`鏍稿疄缁撴灉_${ts}.csv`;
+        a.download=`核实结果_${ts}.csv`;
         document.body.appendChild(a);a.click();URL.revokeObjectURL(url);document.body.removeChild(a);
-        showSuccess('CSV 鏂囦欢宸插鍑?);
+        showSuccess('CSV 文件已导出');
     }
     </script>
 </body>
