@@ -1,9 +1,23 @@
 {
-    "qingdao": { "name":"2026骞?鏈?闈掑矝-鍏ヨ亴鏃犲咖-鍏ㄧ珯鐐?, "code":"qingdao", "city":"qingdao", "year":2026, "months":[3], "stations":[], "referrerType":"all", "type":"single", "validDaysRequired":26, "totalDaysRequired":30, "minDailyOrders":20, "minOnlineHours":8, "lunchMinHours":2.5, "lunchMinOrders":4, "dinnerMinHours":2, "fullDayHoursCol":"valid_online_hours", "peakHoursCol":"online_hours", "hasPeaks":true, "rewardAmount":0 },
-    "may_hr_1300": { "name":"2026骞?鏈?娼嶅潑-涓粙1300-鍏ㄧ珯鐐?2鏈?1000+300)", "code":"may_hr_1300", "city":"weifang", "year":2026, "months":[4], "stations":[], "referrerType":"涓粙", "type":"multi_phase", "phases":[{"validDays":26,"totalOrders":700,"dailyOrders":16,"dailyHours":6.5,"reward":1000},{"validDays":27,"totalOrders":900,"dailyOrders":16,"dailyHours":6.5,"reward":300}], "fullDayHoursCol":"online_hours", "peakHoursCol":"online_hours", "hasPeaks":false, "rewardAmount":1300 },
-    "june_hr_1300": { "name":"2026骞?鏈堣捣-娼嶅潑-涓粙1300-鍏ㄧ珯鐐?2鏈?1000+300)", "code":"june_hr_1300", "city":"weifang", "year":2026, "months":[5,6,7,8,9,10,11,12], "stations":[], "referrerType":"涓粙", "type":"multi_phase", "phases":[{"validDays":26,"totalOrders":700,"dailyOrders":18,"dailyHours":6.5,"reward":1000},{"validDays":27,"totalOrders":900,"dailyOrders":18,"dailyHours":6.5,"reward":300}], "fullDayHoursCol":"online_hours", "peakHoursCol":"online_hours", "hasPeaks":false, "rewardAmount":1300 },
-    "may_neitui_2000": { "name":"2026骞?鏈?娼嶅潑-鍐呮帹2000-鍏ㄧ珯鐐?涓€娆℃€?", "code":"may_neitui_2000", "city":"weifang", "year":2026, "months":[4], "stations":[], "referrerType":"鍐呮帹", "type":"single", "validDaysRequired":26, "totalDaysRequired":30, "minDailyOrders":25, "minOnlineHours":7, "totalOrdersRequired":900, "fullDayHoursCol":"online_hours", "peakHoursCol":"online_hours", "hasPeaks":false, "rewardAmount":2000 },
-    "june_neitui_2000": { "name":"2026骞?鏈堣捣-娼嶅潑-鍐呮帹2000-鍏ㄧ珯鐐?涓€娆℃€?", "code":"june_neitui_2000", "city":"weifang", "year":2026, "months":[5,6,7,8,9,10,11,12], "stations":[], "referrerType":"鍐呮帹", "type":"single", "validDaysRequired":26, "totalDaysRequired":30, "minDailyOrders":25, "minOnlineHours":7, "totalOrdersRequired":900, "fullDayHoursCol":"online_hours", "peakHoursCol":"online_hours", "hasPeaks":false, "rewardAmount":2000 },
-    "april_parttime_3000": { "name":"2026骞?鏈?娼嶅潑-鍏艰亴杞叏鑱?000-鍏ㄧ珯鐐?3鏈?1000+1000+1000)", "code":"april_parttime_3000", "city":"weifang", "year":2026, "months":[4], "stations":[], "referrerType":"all", "type":"multi_phase", "phases":[{"validDays":28,"totalOrders":900,"dailyOrders":20,"dailyHours":6.5,"reward":1000},{"validDays":28,"totalOrders":1000,"dailyOrders":20,"dailyHours":6.5,"reward":1000},{"validDays":28,"totalOrders":1000,"dailyOrders":20,"dailyHours":6.5,"reward":3000}], "fullDayHoursCol":"online_hours", "peakHoursCol":"online_hours", "hasPeaks":false, "rewardAmount":3000 },
-    "default": { "name":"鏍囧噯鏂颁汉濂栧姳(榛樿)", "code":"default", "city":"weifang", "year":2026, "months":[], "stations":[], "referrerType":"all", "type":"single", "validDaysRequired":26, "totalDaysRequired":30, "minDailyOrders":20, "minOnlineHours":8, "lunchMinHours":2.5, "lunchMinOrders":4, "dinnerMinHours":2, "fullDayHoursCol":"online_hours", "peakHoursCol":"online_hours", "hasPeaks":true, "rewardAmount":0 }
+  "default": {
+    "name": "标准新人奖励(默认)",
+    "code": "default",
+    "city": "weifang",
+    "year": 2026,
+    "months": [],
+    "stations": [],
+    "referrerType": "all",
+    "type": "single",
+    "validDaysRequired": 26,
+    "totalDaysRequired": 30,
+    "minDailyOrders": 20,
+    "minOnlineHours": 8,
+    "lunchMinHours": 2.5,
+    "lunchMinOrders": 4,
+    "dinnerMinHours": 2,
+    "fullDayHoursCol": "online_hours",
+    "peakHoursCol": "online_hours",
+    "hasPeaks": true,
+    "rewardAmount": 0
+  }
 }
