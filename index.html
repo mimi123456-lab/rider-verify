@@ -4,1653 +4,1736 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>骑手政策核实工具 v2.1 · 多城市适配</title>
+    <title>骑手政策核实工具 v3 · 自动期数识别</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
-            background: #f0f2f5;
-            min-height: 100vh;
-        }
-        .header {
-            background: #1a1a2e;
-            color: white;
-            text-align: center;
-            padding: 18px 20px;
-            font-size: 20px;
-            font-weight: 600;
-            letter-spacing: 1px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .section {
-            background: white;
-            border-radius: 8px;
-            padding: 24px;
-            margin-bottom: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        }
-        .section-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1a1a2e;
-            margin-bottom: 16px;
-            padding-left: 12px;
-            border-left: 3px solid #4f46e5;
-        }
-        .file-upload-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 8px;
-        }
-        .file-upload-row input[type="file"] {
-            flex: 1;
-        }
-        .file-info {
-            color: #666;
-            font-size: 13px;
-            margin-bottom: 12px;
-        }
-        .file-info.error { color: #dc3545; }
-        .file-info.success { color: #28a745; }
-        .upload-label {
-            display: inline-block;
-            padding: 6px 16px;
-            background: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-            color: #333;
-            white-space: nowrap;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif; background: #f0f2f5; min-height: 100vh; }
+        .header { background: #1a1a2e; color: white; text-align: center; padding: 18px 20px; font-size: 20px; font-weight: 600; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .section { background: white; border-radius: 8px; padding: 24px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .section-title { font-size: 16px; font-weight: 600; color: #1a1a2e; margin-bottom: 16px; padding-left: 12px; border-left: 3px solid #4f46e5; }
+        .file-upload-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+        .upload-label { display: inline-block; padding: 6px 16px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 13px; }
         .upload-label:hover { background: #e9ecef; }
         .upload-label input[type="file"] { display: none; }
-        .merge-checkbox {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            color: #666;
-            margin-left: auto;
-        }
-        .policy-config-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-top: 8px;
-        }
-        .policy-config-row label {
-            font-size: 13px;
-            color: #666;
-            white-space: nowrap;
-        }
-        .column-hint {
-            color: #dc3545;
-            font-size: 12px;
-            margin-bottom: 12px;
-        }
-        .column-mapping {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 12px;
-        }
-        .column-mapping .field {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .column-mapping .field label {
-            font-size: 12px;
-            color: #666;
-        }
-        .column-mapping select {
-            padding: 8px 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 13px;
-            background: white;
-            cursor: pointer;
-        }
-        .column-mapping select:focus {
-            outline: none;
-            border-color: #4f46e5;
-        }
-        .verify-row {
-            display: flex;
-            align-items: flex-end;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-        .verify-row .field {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .verify-row .field label {
-            font-size: 12px;
-            color: #666;
-        }
-        .verify-row select {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 13px;
-            min-width: 280px;
-        }
-        .verify-row .file-upload-inline {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .btn-primary {
-            padding: 8px 24px;
-            background: #4f46e5;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 14px;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: background 0.2s;
-        }
+        .file-info { color: #666; font-size: 13px; margin-bottom: 12px; }
+        .file-info.error { color: #dc3545; }
+        .file-info.success { color: #28a745; }
+        .btn-primary { padding: 8px 24px; background: #4f46e5; color: white; border: none; border-radius: 4px; font-size: 14px; cursor: pointer; }
         .btn-primary:hover { background: #4338ca; }
-        .btn-primary:disabled { background: #a5a0d8; cursor: not-allowed; }
-        .history-toggle {
-            color: #4f46e5;
-            font-size: 13px;
-            cursor: pointer;
-            margin-bottom: 12px;
-            display: inline-block;
-        }
-        .history-toggle:hover { text-decoration: underline; }
-        .history-panel {
-            display: none;
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 4px;
-            margin-bottom: 12px;
-            font-size: 13px;
-            color: #666;
-        }
-        .history-panel.show { display: block; }
-        .stats-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-        .stat-card {
-            text-align: center;
-            padding: 20px;
-            border-radius: 8px;
-            background: #f8f9fa;
-        }
-        .stat-card.pass { background: #f0fdf4; }
-        .stat-card.fail { background: #fef2f2; }
-        .stat-number {
-            font-size: 36px;
-            font-weight: 700;
-        }
-        .stat-card.pass .stat-number { color: #28a745; }
-        .stat-card.fail .stat-number { color: #dc3545; }
-        .stat-label {
-            font-size: 13px;
-            color: #666;
-            margin-top: 4px;
-        }
-        .total-amount {
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 12px;
-        }
-        .results-table-wrapper {
-            overflow-x: auto;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .results-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        .results-table th {
-            background: #f8f9fa;
-            padding: 10px 12px;
-            text-align: center;
-            font-weight: 600;
-            color: #333;
-            border-bottom: 2px solid #e0e0e0;
-            position: sticky;
-            top: 0;
-            z-index: 1;
-        }
-        .results-table td {
-            padding: 8px 12px;
-            text-align: center;
-            border-bottom: 1px solid #f0f0f0;
-        }
+        .btn-export { padding: 8px 20px; border: 1px solid #4f46e5; background: white; color: #4f46e5; border-radius: 4px; cursor: pointer; font-size: 13px; margin-right: 8px; }
+        .btn-export:hover { background: #4f46e5; color: white; }
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; }
+        .stat-card { text-align: center; padding: 16px; border-radius: 8px; background: #f8f9fa; }
+        .stat-number { font-size: 28px; font-weight: 700; }
+        .stat-label { font-size: 12px; color: #666; margin-top: 4px; }
+        .results-table-wrapper { overflow-x: auto; max-height: 500px; overflow-y: auto; }
+        .results-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .results-table th { background: #f8f9fa; padding: 8px 6px; text-align: center; font-weight: 600; border-bottom: 2px solid #e0e0e0; position: sticky; top: 0; z-index: 1; white-space: nowrap; }
+        .results-table td { padding: 6px; text-align: center; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
         .results-table tr:hover { background: #f8f9fa; }
-        .badge {
-            display: inline-block;
-            padding: 2px 10px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 500;
-        }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; }
         .badge-pass { background: #d4edda; color: #155724; }
         .badge-fail { background: #f8d7da; color: #721c24; }
-        .result-section { display: none; }
-        .result-section.show { display: block; }
-        .export-row {
-            display: flex;
-            gap: 12px;
-            margin-top: 16px;
-        }
-        .btn-export {
-            padding: 8px 20px;
-            border: 1px solid #4f46e5;
-            background: white;
-            color: #4f46e5;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.2s;
-        }
-        .btn-export:hover { background: #4f46e5; color: white; }
-        .loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.3);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
+        .badge-warn { background: #fff3cd; color: #856404; }
+        .loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 1000; justify-content: center; align-items: center; }
         .loading-overlay.show { display: flex; }
-        .loading-box {
-            background: white;
-            padding: 30px 40px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #4f46e5;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 12px;
-        }
+        .loading-box { background: white; padding: 30px 40px; border-radius: 8px; text-align: center; }
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #4f46e5; border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; margin: 0 auto 12px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .error-toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #dc3545;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 6px;
-            font-size: 14px;
-            z-index: 1001;
-            display: none;
-            max-width: 400px;
-        }
-        .error-toast.show { display: block; }
-        .success-toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #28a745;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 6px;
-            font-size: 14px;
-            z-index: 1001;
-            display: none;
-            max-width: 400px;
-        }
-        .success-toast.show { display: block; }
+        .toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 6px; font-size: 14px; z-index: 1001; display: none; max-width: 500px; }
+        .toast.error { background: #dc3545; color: white; }
+        .toast.success { background: #28a745; color: white; }
+        .toast.show { display: block; }
+        .warning-row { background: #fff8e1 !important; }
+        .error-row { background: #fce4ec !important; }
+        .hint-text { color: #666; font-size: 12px; margin-bottom: 12px; line-height: 1.6; }
     </style>
 </head>
 <body>
-    <div class="header">骑手政策核实工具 v2.1 · 多城市适配 <span style="font-size:12px;font-weight:400;opacity:0.7;margin-left:8px;">build 20260714</span></div>
+    <div class="header">骑手政策核实工具 v3 · 多城市适配 <span style="font-size:12px;font-weight:400;opacity:0.7;margin-left:8px;">build 20260714</span></div>
     <div class="container">
-        <!-- Section 1: Upload Attendance File -->
+        <!-- City Selector -->
+        <div class="section" style="padding:16px 24px;">
+            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+                <label style="font-size:14px;font-weight:600;color:#1a1a2e;">选择城市：</label>
+                <select id="citySelector" style="padding:8px 16px;border:1px solid #ddd;border-radius:4px;font-size:14px;min-width:160px;" onchange="onCityChange()">
+                    <option value="weifang">潍坊</option>
+                    <option value="qingdao">青岛</option>
+                    <option value="shanghai">上海</option>
+                </select>
+                <input type="text" id="newCityInput" placeholder="新增城市名" style="padding:6px 12px;border:1px solid #ddd;border-radius:4px;font-size:13px;width:120px;">
+                <button class="btn-export" style="margin:0;padding:6px 14px;font-size:12px;" onclick="addNewCity()">+ 添加城市</button>
+                <span id="cityPolicyHint" style="font-size:13px;color:#666;">当前城市政策：人资1300、内推2000、兼职转全职3000</span>
+            </div>
+        </div>
+        <!-- Policy Management -->
+        <div class="section" id="policyManageSection" style="padding:16px 24px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <label style="font-size:14px;font-weight:600;color:#1a1a2e;">当前政策管理</label>
+                <button class="btn-export" style="margin:0;padding:4px 12px;font-size:11px;" onclick="refreshPolicyList()">刷新列表</button>
+            </div>
+            <div id="policyList" style="font-size:12px;color:#666;"></div>
+        </div>
+        <!-- Section 1: Upload Files -->
         <div class="section">
-            <div class="section-title">1. 上传考勤文件</div>
+            <div class="section-title">1. 上传文件</div>
+            <div class="hint-text">
+                需要上传两个文件：<br>
+                ① <b>考勤数据文件</b>（xlsx/csv）：包含骑手每日考勤记录（骑手ID、日期、时段、完单量、在线时长等）<br>
+                ② <b>骑手名单文件</b>（xlsx/csv）：包含待核实骑手列表，必须有<b>奖励备注说明</b>列（如"内推3月入职第一期"）
+            </div>
             <div class="file-upload-row">
-                <label class="upload-label">
-                    选择文件
-                    <input type="file" id="attendanceFile" accept=".xlsx,.xls,.csv">
-                </label>
+                <label class="upload-label">选择考勤文件<input type="file" id="attendanceFile" accept=".xlsx,.xls,.csv"></label>
                 <span id="attendanceFileName" style="font-size:13px;color:#666;"></span>
             </div>
             <div class="file-info" id="attendanceFileInfo"></div>
-
-            <div class="policy-config-row">
-                <label>上传政策配置（可选）</label>
-                <label class="upload-label">
-                    选择文件
-                    <input type="file" id="policyFile" accept=".json">
-                </label>
-                <span id="policyFileName" style="font-size:13px;color:#666;">未选择文件</span>
-                <label class="merge-checkbox">
-                    <input type="checkbox" id="mergePolicy" checked>
-                    合并模式（保留内置政策+追加新政策）
-                </label>
+            <div class="file-upload-row">
+                <label class="upload-label">选择骑手名单文件<input type="file" id="riderListFile" accept=".xlsx,.xls,.csv"></label>
+                <span id="riderListFileName" style="font-size:13px;color:#666;"></span>
             </div>
-            <div class="file-info" id="policyFileInfo">未上传（当前使用内置7套政策）</div>
+            <div class="file-info" id="riderListInfo"></div>
+            <div class="file-upload-row" style="margin-top:8px;">
+                <label class="upload-label">选择历史发放记录（可选）<input type="file" id="historyFile" accept=".xlsx,.xls,.csv"></label>
+                <span id="historyFileName" style="font-size:13px;color:#666;"></span>
+            </div>
+            <div class="file-info" id="historyInfo">未上传（如上传将用于检测重复发放）</div>
+            <div class="file-upload-row" style="margin-top:8px;">
+                <label class="upload-label">上传新政策配置（可多选）<input type="file" id="policyFile" accept=".docx,.doc,.pdf,.xlsx,.xls,.json" multiple></label>
+                <span id="policyFileName" style="font-size:13px;color:#666;">未选择文件</span>
+            </div>
+            <div class="file-info" id="policyFileInfo">未上传（当前使用内置政策）</div>
         </div>
 
         <!-- Section 2: Column Mapping -->
         <div class="section">
             <div class="section-title">2. 列映射确认</div>
-            <div class="column-hint">青岛专用：全天用「有效在线时长」，午晚高峰用「在线时长」。非青岛城市：两列选同一个即可。</div>
-            <div class="column-mapping" id="columnMapping">
-                <div class="field">
-                    <label>骑手ID</label>
-                    <select id="colRiderId"><option value="">-- 请选择 --</option></select>
-                </div>
-                <div class="field">
-                    <label>姓名</label>
-                    <select id="colName"><option value="">-- 请选择 --</option></select>
-                </div>
-                <div class="field">
-                    <label>日期</label>
-                    <select id="colDate"><option value="">-- 请选择 --</option></select>
-                </div>
-                <div class="field">
-                    <label>时段</label>
-                    <select id="colPeriod"><option value="">-- 请选择 --</option></select>
-                </div>
-                <div class="field">
-                    <label>完单量</label>
-                    <select id="colOrders"><option value="">-- 请选择 --</option></select>
-                </div>
-                <div class="field">
-                    <label>全天时长列</label>
-                    <select id="colFullDayHours"><option value="">-- 请选择 --</option></select>
-                </div>
-                <div class="field">
-                    <label>分时段时长列（午/晚高峰）<br><span style="color:#dc3545;font-size:11px;">（如青岛：午晚高峰用在线时长）</span></label>
-                    <select id="colPeakHours"><option value="">-- 请选择 --</option></select>
-                </div>
+            <div class="hint-text">系统会自动检测列名，请确认映射是否正确。青岛专用：全天用「有效在线时长」，午晚高峰用「在线时长」。</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;" id="columnMapping">
+                <div class="field"><label>骑手ID</label><select id="colRiderId"><option value="">-- 请选择 --</option></select></div>
+                <div class="field"><label>姓名</label><select id="colName"><option value="">-- 请选择 --</option></select></div>
+                <div class="field"><label>日期</label><select id="colDate"><option value="">-- 请选择 --</option></select></div>
+                <div class="field"><label>时段</label><select id="colPeriod"><option value="">-- 请选择 --</option></select></div>
+                <div class="field"><label>完单量</label><select id="colOrders"><option value="">-- 请选择 --</option></select></div>
+                <div class="field"><label>全天时长列</label><select id="colFullDayHours"><option value="">-- 请选择 --</option></select></div>
+                <div class="field"><label>分时段时长列</label><select id="colPeakHours"><option value="">-- 请选择 --</option></select></div>
             </div>
         </div>
 
-        <!-- Section 3: Verification Method -->
+        <!-- Section 3: Start Verification -->
         <div class="section">
-            <div class="section-title">3. 核实方式</div>
-            <div class="history-toggle" id="historyToggle" onclick="toggleHistory()">▶ 历史发放记录（可选，用于自动判断期数）</div>
-            <div class="history-panel" id="historyPanel">
-                <div class="file-upload-row">
-                    <label class="upload-label">
-                        选择文件
-                        <input type="file" id="historyFile" accept=".xlsx,.xls,.csv">
-                    </label>
-                    <span id="historyFileName" style="font-size:13px;color:#666;"></span>
-                </div>
-            </div>
-            <div class="verify-row">
-                <div class="field">
-                    <label>方式</label>
-                    <select id="verifyMode">
-                        <option value="mixed">混合模式（上传骑手名单自动匹配）</option>
-                        <option value="single">统一政策模式（所有骑手使用同一政策）</option>
-                    </select>
-                </div>
-                <div class="field" id="singlePolicyField" style="display:none;">
-                    <label>选择政策</label>
-                    <select id="singlePolicy">
-                        <option value="qingdao">青岛 - 入职无忧新人奖励方案</option>
-                        <option value="may_hr_1300">5月人资版1300元 (6月前入职)</option>
-                        <option value="june_hr_1300">6月人资版1300元 (6月及之后入职)</option>
-                        <option value="may_neitui_2000">5月内推2000元</option>
-                        <option value="june_neitui_2000">6月内推2000元</option>
-                        <option value="april_parttime_3000">4月兼职转全职3000元</option>
-                        <option value="default">标准新人奖励方案 (默认)</option>
-                    </select>
-                </div>
-                <div class="field">
-                    <label>骑手名单文件</label>
-                    <div class="file-upload-inline">
-                        <label class="upload-label">
-                            选择文件
-                            <input type="file" id="riderListFile" accept=".xlsx,.xls,.csv">
-                        </label>
-                        <span id="riderListFileName" style="font-size:13px;color:#666;"></span>
-                    </div>
-                </div>
-                <button class="btn-primary" id="startVerifyBtn" onclick="startVerification()">开始核实</button>
-            </div>
-            <div class="file-info" id="riderListInfo"></div>
+            <div class="section-title">3. 开始核实</div>
+            <button class="btn-primary" id="startVerifyBtn" onclick="startVerification()">开始核实</button>
         </div>
 
         <!-- Section 4: Results -->
-        <div class="section result-section" id="resultSection">
-            <div class="section-title">4. 结果</div>
+        <div class="section" id="resultSection" style="display:none;">
+            <div class="section-title">4. 核实结果</div>
             <div class="stats-row">
-                <div class="stat-card pass">
-                    <div class="stat-number" id="passCount">0</div>
-                    <div class="stat-label">达标</div>
-                </div>
-                <div class="stat-card fail">
-                    <div class="stat-number" id="failCount">0</div>
-                    <div class="stat-label">不达标</div>
-                </div>
+                <div class="stat-card"><div class="stat-number" id="totalCount" style="color:#1a1a2e;">0</div><div class="stat-label">总人数</div></div>
+                <div class="stat-card"><div class="stat-number" id="passCount" style="color:#28a745;">0</div><div class="stat-label">达标</div></div>
+                <div class="stat-card"><div class="stat-number" id="failCount" style="color:#dc3545;">0</div><div class="stat-label">不达标</div></div>
+                <div class="stat-card"><div class="stat-number" id="warnCount" style="color:#ff9800;">0</div><div class="stat-label">警告/重复</div></div>
             </div>
-            <div class="total-amount" id="totalAmount"></div>
             <div class="results-table-wrapper">
                 <table class="results-table" id="resultsTable">
                     <thead>
                         <tr>
-                            <th>骑手ID</th>
-                            <th>姓名</th>
-                            <th>政策</th>
-                            <th>有效天数</th>
-                            <th>总单量</th>
-                            <th>月标准</th>
-                            <th>判定</th>
-                            <th>应发</th>
+                            <th>ID</th><th>姓名</th><th>入职日期</th><th>发放备注</th><th>奖励备注说明</th>
+                            <th>政策</th><th>应发期数</th><th>历史已发期数</th><th>历史期数明细</th>
+                            <th>每日需时</th><th>需百天数</th><th>需总单量</th>
+                            <th>有效天数</th><th>总单量</th><th>达标</th>
+                            <th>应发金额</th><th>状态</th>
                         </tr>
                     </thead>
                     <tbody id="resultsBody"></tbody>
                 </table>
             </div>
-            <div class="export-row">
-                <button class="btn-export" onclick="exportResults('xlsx')"> 导出 Excel</button>
-                <button class="btn-export" onclick="exportResults('csv')">📄 导出 CSV</button>
+            <div style="margin-top:16px;">
+                <button class="btn-export" onclick="exportResults('xlsx')">导出 Excel</button>
+                <button class="btn-export" onclick="exportResults('csv')">导出 CSV</button>
             </div>
         </div>
     </div>
 
-    <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-box">
-            <div class="spinner"></div>
-            <div>正在核实中，请稍候...</div>
-        </div>
+        <div class="loading-box"><div class="spinner"></div><div>正在核实中，请稍候...</div></div>
     </div>
-
-    <!-- Toasts -->
-    <div class="error-toast" id="errorToast"></div>
-    <div class="success-toast" id="successToast"></div>
+    <div class="toast error" id="errorToast"></div>
+    <div class="toast success" id="successToast"></div>
 
     <script>
     // ============================================================
-    // Policy Rules Data (from city_policies.json)
+    // Policy Definitions
     // ============================================================
     const POLICIES = {
-        qingdao: {
-            name: '青岛 - 入职无忧新人奖励方案',
-            code: 'qingdao',
-            type: 'single',
-            validDaysRequired: 26,
-            totalDaysRequired: 30,
-            minDailyOrders: 20,
-            minOnlineHours: 8,
-            lunchMinHours: 2.5,
-            lunchMinOrders: 4,
-            dinnerMinHours: 2,
-            fullDayHoursCol: 'valid_online_hours', // col15
-            peakHoursCol: 'online_hours',           // col14
-            hasPeaks: true,
-            rewardAmount: 0,
-            description: '有效天数≥26天，日在线≥8h(有效在线时长)，午高峰≥2.5h且单量≥4，晚高峰≥2h，日单量≥20'
-        },
-        may_hr_1300: {
-            name: '5月人资版1300元 (6月前入职)',
-            code: 'may_hr_1300',
-            type: 'multi_phase',
-            phases: [
-                { validDays: 26, totalOrders: 700, dailyOrders: 16, dailyHours: 6.5, reward: 700 },
-                { validDays: 27, totalOrders: 900, dailyOrders: 16, dailyHours: 6.5, reward: 600 }
-            ],
-            fullDayHoursCol: 'online_hours',
-            peakHoursCol: 'online_hours',
-            hasPeaks: false,
-            rewardAmount: 1300,
-            description: '第一阶段:有效出勤26天+700单(日单≥16,在线≥6.5h)；第二阶段:27天+900单'
-        },
-        june_hr_1300: {
-            name: '6月人资版1300元 (6月及之后入职)',
-            code: 'june_hr_1300',
-            type: 'multi_phase',
-            phases: [
-                { validDays: 26, totalOrders: 700, dailyOrders: 18, dailyHours: 6.5, reward: 700 },
-                { validDays: 27, totalOrders: 900, dailyOrders: 18, dailyHours: 6.5, reward: 600 }
-            ],
-            fullDayHoursCol: 'online_hours',
-            peakHoursCol: 'online_hours',
-            hasPeaks: false,
-            rewardAmount: 1300,
-            description: '第一阶段:有效出勤26天+700单(日单≥18,在线≥6.5h)；第二阶段:27天+900单'
-        },
-        may_neitui_2000: {
-            name: '5月内推2000元',
-            code: 'may_neitui_2000',
-            type: 'single',
-            validDaysRequired: 26,
-            totalDaysRequired: 30,
-            minDailyOrders: 25,
-            minOnlineHours: 7,
-            totalOrdersRequired: 900,
-            fullDayHoursCol: 'online_hours',
-            peakHoursCol: 'online_hours',
-            hasPeaks: false,
-            rewardAmount: 2000,
-            description: '有效出勤≥26天，日在线≥7h，日单量≥25，总单量≥900'
-        },
-        june_neitui_2000: {
-            name: '6月内推2000元',
-            code: 'june_neitui_2000',
-            type: 'single',
-            validDaysRequired: 26,
-            totalDaysRequired: 30,
-            minDailyOrders: 25,
-            minOnlineHours: 7,
-            totalOrdersRequired: 900,
-            fullDayHoursCol: 'online_hours',
-            peakHoursCol: 'online_hours',
-            hasPeaks: false,
-            rewardAmount: 2000,
-            description: '有效出勤≥26天，日在线≥7h，日单量≥25，总单量≥900'
-        },
-        april_parttime_3000: {
-            name: '4月兼职转全职3000元',
-            code: 'april_parttime_3000',
-            type: 'multi_phase',
-            phases: [
-                { validDays: 28, totalOrders: 900, dailyOrders: 20, dailyHours: 6.5, reward: 1000 },
-                { validDays: 28, totalOrders: 1000, dailyOrders: 20, dailyHours: 6.5, reward: 1000 },
-                { validDays: 28, totalOrders: 1000, dailyOrders: 20, dailyHours: 6.5, reward: 1000 }
-            ],
-            fullDayHoursCol: 'online_hours',
-            peakHoursCol: 'online_hours',
-            hasPeaks: false,
-            rewardAmount: 3000,
-            description: '三阶段各28天有效出勤，单量分别900/1000/1000(日单≥20,在线≥6.5h)'
-        },
-        default: {
-            name: '标准新人奖励方案 (默认)',
-            code: 'default',
-            type: 'single',
-            validDaysRequired: 26,
-            totalDaysRequired: 30,
-            minDailyOrders: 20,
-            minOnlineHours: 8,
-            lunchMinHours: 2.5,
-            lunchMinOrders: 4,
-            dinnerMinHours: 2,
-            fullDayHoursCol: 'online_hours',
-            peakHoursCol: 'online_hours',
-            hasPeaks: true,
-            rewardAmount: 0,
-            description: '有效天数≥26天，日在线≥8h，午高峰≥2.5h且单量≥4，晚高峰≥2h，日单量≥20'
-        }
+        qingdao: { name:'2026年3月-青岛-入职无忧-全站点', code:'qingdao', city:'qingdao', year:2026, months:[3], stations:[], referrerType:'all', type:'single', validDaysRequired:26, totalDaysRequired:30, minDailyOrders:20, minOnlineHours:8, lunchMinHours:2.5, lunchMinOrders:4, dinnerMinHours:2, fullDayHoursCol:'valid_online_hours', peakHoursCol:'online_hours', hasPeaks:true, rewardAmount:0 },
+        may_hr_1300: { name:'2026年4月-潍坊-中介1300-全站点(2期:1000+300)', code:'may_hr_1300', city:'weifang', year:2026, months:[4], stations:[], referrerType:'中介', type:'multi_phase', phases:[{validDays:26,totalOrders:700,dailyOrders:16,dailyHours:6.5,reward:1000},{validDays:27,totalOrders:900,dailyOrders:16,dailyHours:6.5,reward:300}], fullDayHoursCol:'online_hours', peakHoursCol:'online_hours', hasPeaks:false, rewardAmount:1300 },
+        june_hr_1300: { name:'2026年5月起-潍坊-中介1300-全站点(2期:1000+300)', code:'june_hr_1300', city:'weifang', year:2026, months:[5,6,7,8,9,10,11,12], stations:[], referrerType:'中介', type:'multi_phase', phases:[{validDays:26,totalOrders:700,dailyOrders:18,dailyHours:6.5,reward:1000},{validDays:27,totalOrders:900,dailyOrders:18,dailyHours:6.5,reward:300}], fullDayHoursCol:'online_hours', peakHoursCol:'online_hours', hasPeaks:false, rewardAmount:1300 },
+        may_neitui_2000: { name:'2026年4月-潍坊-内推2000-全站点(一次性)', code:'may_neitui_2000', city:'weifang', year:2026, months:[4], stations:[], referrerType:'内推', type:'single', validDaysRequired:26, totalDaysRequired:30, minDailyOrders:25, minOnlineHours:7, totalOrdersRequired:900, fullDayHoursCol:'online_hours', peakHoursCol:'online_hours', hasPeaks:false, rewardAmount:2000 },
+        june_neitui_2000: { name:'2026年5月起-潍坊-内推2000-全站点(一次性)', code:'june_neitui_2000', city:'weifang', year:2026, months:[5,6,7,8,9,10,11,12], stations:[], referrerType:'内推', type:'single', validDaysRequired:26, totalDaysRequired:30, minDailyOrders:25, minOnlineHours:7, totalOrdersRequired:900, fullDayHoursCol:'online_hours', peakHoursCol:'online_hours', hasPeaks:false, rewardAmount:2000 },
+        april_parttime_3000: { name:'2026年4月-潍坊-兼职转全职3000-全站点(3期:1000+1000+1000)', code:'april_parttime_3000', city:'weifang', year:2026, months:[4], stations:[], referrerType:'all', type:'multi_phase', phases:[{validDays:28,totalOrders:900,dailyOrders:20,dailyHours:6.5,reward:1000},{validDays:28,totalOrders:1000,dailyOrders:20,dailyHours:6.5,reward:1000},{validDays:28,totalOrders:1000,dailyOrders:20,dailyHours:6.5,reward:1000}], fullDayHoursCol:'online_hours', peakHoursCol:'online_hours', hasPeaks:false, rewardAmount:3000 },
+        default: { name:'标准新人奖励(默认)', code:'default', city:'weifang', year:2026, months:[], stations:[], referrerType:'all', type:'single', validDaysRequired:26, totalDaysRequired:30, minDailyOrders:20, minOnlineHours:8, lunchMinHours:2.5, lunchMinOrders:4, dinnerMinHours:2, fullDayHoursCol:'online_hours', peakHoursCol:'online_hours', hasPeaks:true, rewardAmount:0 }
     };
+
+    /**
+     * 根据骑手的入职日期、站点、推荐人类型自动匹配政策
+     */
+    function matchPolicyByRider(joinDateStr, station, referrerType, city){
+        const joinDate=joinDateStr?new Date(joinDateStr):null;
+        const joinMonth=joinDate?joinDate.getMonth()+1:0;
+        const joinYear=joinDate?joinDate.getFullYear():0;
+        const stationLower=toString(station).toLowerCase();
+        const refLower=toString(referrerType).toLowerCase();
+
+        let bestMatch=null;
+        let bestScore=0;
+
+        for(const[code,policy]of Object.entries(POLICIES)){
+            if(code==='default') continue;
+            // 城市匹配
+            if(policy.city&&policy.city!==city) continue;
+            // 年份匹配
+            if(policy.year&&joinYear&&policy.year!==joinYear) continue;
+            // 月份匹配（空数组=不限月份）
+            if(policy.months&&policy.months.length>0&&joinMonth&&!policy.months.includes(joinMonth)) continue;
+            // 推荐人类型匹配
+            if(policy.referrerType&&policy.referrerType!=='all'){
+                if(refLower&&!refLower.includes(policy.referrerType)) continue;
+            }
+            // 站点匹配（空数组=不限站点）
+            if(policy.stations&&policy.stations.length>0){
+                const stationMatch=policy.stations.some(s=>stationLower.includes(s.toLowerCase()));
+                if(!stationMatch) continue;
+            }
+            // 计算匹配分数（越具体分数越高）
+            let score=1;
+            if(policy.months&&policy.months.length>0) score+=2;
+            if(policy.referrerType&&policy.referrerType!=='all') score+=2;
+            if(policy.stations&&policy.stations.length>0) score+=2;
+            if(score>bestScore){bestScore=score;bestMatch=policy;}
+        }
+
+        return bestMatch||POLICIES['default'];
+    }
+
+    // City policy mapping
+    const CITY_POLICIES = {
+        qingdao: ['qingdao'],
+        weifang: ['may_hr_1300', 'june_hr_1300', 'may_neitui_2000', 'june_neitui_2000', 'april_parttime_3000', 'default'],
+        shanghai: []
+    };
+    const CITY_NAMES = { qingdao: '青岛', weifang: '潍坊', shanghai: '上海' };
 
     // ============================================================
     // Global State
     // ============================================================
-    let attendanceData = null;   // Parsed Excel data (2D array)
-    let attendanceHeaders = [];  // Header row
-    let riderListData = null;    // Parsed rider list
-    let historyData = null;      // Parsed history records
-    let verificationResults = []; // Results array
-    let currentColumnMap = {};   // Column mapping
+    let attendanceData = null, attendanceHeaders = [], riderListData = null, historyData = null;
+    let verificationResults = [], currentColumnMap = {};
+    let historyIndex = {};
+    let currentCity = 'weifang'; // Default city
+
+    function onCityChange() {
+        currentCity = document.getElementById('citySelector').value;
+        const policies = CITY_POLICIES[currentCity];
+        const policyNames = policies.map(code => POLICIES[code] ? POLICIES[code].name.replace('潍坊-','').replace('青岛-','').replace('上海-','') : code);
+        document.getElementById('cityPolicyHint').textContent = policyNames.length > 0 ? `当前城市政策：${policyNames.join('、')}` : `当前城市暂无政策，请上传政策文件`;
+        console.log('[城市] 切换到', CITY_NAMES[currentCity]||currentCity, '，可用政策:', policyNames.join(', '));
+    }
+
+    function addNewCity() {
+        const input = document.getElementById('newCityInput');
+        const name = input.value.trim();
+        if (!name) { showError('请输入城市名称'); return; }
+        const code = name.toLowerCase().replace(/\s+/g, '_');
+        if (CITY_POLICIES[code]) { showError('城市"' + name + '"已存在'); return; }
+        CITY_POLICIES[code] = [];
+        CITY_NAMES[code] = name;
+        const sel = document.getElementById('citySelector');
+        const opt = document.createElement('option');
+        opt.value = code;
+        opt.textContent = name;
+        sel.appendChild(opt);
+        sel.value = code;
+        input.value = '';
+        onCityChange();
+        showSuccess('城市"' + name + '"已添加');
+        saveCities();
+    }
+
+    // ============================================================
+    // Load/Save Policies from localStorage
+    // ============================================================
+    function loadSavedPolicies() {
+        try {
+            const saved = localStorage.getItem('rider_policies');
+            if (saved) {
+                const custom = JSON.parse(saved);
+                for (const [code, policy] of Object.entries(custom)) {
+                    POLICIES[code] = policy;
+                    if (policy.city && !CITY_POLICIES[policy.city]) CITY_POLICIES[policy.city] = [];
+                    if (policy.city && !CITY_POLICIES[policy.city].includes(code)) {
+                        CITY_POLICIES[policy.city].push(code);
+                    }
+                }
+                console.log('[政策] 已加载', Object.keys(custom).length, '个自定义政策');
+            }
+            // Load saved cities
+            const savedCities = localStorage.getItem('rider_cities');
+            if (savedCities) {
+                const cities = JSON.parse(savedCities);
+                for (const [code, name] of Object.entries(cities)) {
+                    if (!CITY_POLICIES[code]) {
+                        CITY_POLICIES[code] = [];
+                        CITY_NAMES[code] = name;
+                        const sel = document.getElementById('citySelector');
+                        const opt = document.createElement('option');
+                        opt.value = code;
+                        opt.textContent = name;
+                        sel.appendChild(opt);
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('[政策] 加载失败:', e);
+        }
+    }
+
+    function savePolicies() {
+        try {
+            const custom = {};
+            const builtIn = ['qingdao','may_hr_1300','june_hr_1300','may_neitui_2000','june_neitui_2000','april_parttime_3000','default'];
+            for (const [code, policy] of Object.entries(POLICIES)) {
+                if (!builtIn.includes(code)) custom[code] = policy;
+            }
+            localStorage.setItem('rider_policies', JSON.stringify(custom));
+        } catch (e) { console.warn('[政策] 保存失败:', e); }
+    }
+
+    function saveCities() {
+        try {
+            const custom = {};
+            const builtIn = ['qingdao','weifang','shanghai'];
+            for (const [code, name] of Object.entries(CITY_NAMES)) {
+                if (!builtIn.includes(code)) custom[code] = name;
+            }
+            localStorage.setItem('rider_cities', JSON.stringify(custom));
+        } catch (e) { console.warn('[城市] 保存失败:', e); }
+    }
+
+    // Load saved policies on startup
+    loadSavedPolicies();
+    refreshPolicyList();
+
+    function refreshPolicyList(){
+        const container=document.getElementById('policyList');
+        if(!container) return;
+        // 按年份+月份降序排列
+        const sorted=Object.entries(POLICIES).sort((a,b)=>{
+            const pa=a[1],pb=b[1];
+            const ya=pa.year||0,yb=pb.year||0;
+            if(yb!==ya) return yb-ya;
+            const ma=pa.months&&pa.months.length?Math.max(...pa.months):0;
+            const mb=pb.months&&pb.months.length?Math.max(...pb.months):0;
+            return mb-ma;
+        });
+        let html='';
+        for(const[code,policy]of sorted){
+            const cityName=CITY_NAMES[policy.city]||policy.city||'未知';
+            const typeText=policy.type==='multi_phase'?`多期(${policy.phases?policy.phases.length:0}期)`:'单期';
+            const refText=policy.referrerType&&policy.referrerType!=='all'?` [${policy.referrerType}]`:'';
+            const monthText=policy.months&&policy.months.length?` ${policy.months.join('/')}月`:'';
+            const isBuiltIn=['qingdao','may_hr_1300','june_hr_1300','may_neitui_2000','june_neitui_2000','april_parttime_3000','default'].includes(code);
+            html+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0f0f0;">
+                <span style="flex:1;"><b>${policy.name}</b><span style="color:#666;font-size:11px;">${refText}${monthText}</span> <span style="color:#999;">[${code}]</span> ${cityName} ${typeText} ¥${policy.rewardAmount||0}</span>
+                <button onclick="editPolicy('${code}')" style="padding:2px 10px;background:#4f46e5;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;">编辑</button>
+                ${isBuiltIn?'':`<button onclick="deletePolicy('${code}')" style="padding:2px 10px;background:#dc3545;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;">删除</button>`}
+            </div>`;
+        }
+        container.innerHTML=html||'暂无政策';
+    }
+
+    function editPolicy(code){
+        const policy=POLICIES[code];
+        if(!policy) return;
+        const existingForm=document.getElementById('policyFormSection');
+        if(existingForm) existingForm.remove();
+
+        const p=policy;
+        const phaseText=(p.phases||[]).map(ph=>`${ph.validDays},${ph.totalOrders},${ph.dailyOrders},${ph.dailyHours},${ph.reward}`).join('\n');
+        const isMulti=p.type==='multi_phase';
+
+        const formHtml=`
+        <div class="section" id="policyFormSection">
+            <div class="section-title">编辑政策 <span style="font-size:12px;color:#4f46e5;">${p.name}</span></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px;">
+                <div class="field"><label>政策代码</label><input type="text" id="newPolicyCode" value="${code}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" readonly></div>
+                <div class="field"><label>政策名称</label><input type="text" id="newPolicyName" value="${p.name}" style="padding:8px;border:2px solid #4f46e5;border-radius:4px;width:100%;"></div>
+                <div class="field"><label>所属城市</label><select id="newPolicyCity" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></select></div>
+                <div class="field"><label>政策类型</label><select id="newPolicyType" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" onchange="togglePolicyFields()"><option value="single"${isMulti?'':' selected'}>单期（一次性）</option><option value="multi_phase"${isMulti?' selected':''}>多期</option></select></div>
+                <div class="field"><label>总奖励金额</label><input type="number" id="newPolicyReward" value="${p.rewardAmount||0}" style="padding:8px;border:2px solid #4f46e5;border-radius:4px;width:100%;"></div>
+            </div>
+            <div id="singlePhaseFields" style="display:${isMulti?'none':'grid'};grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px;">
+                <div class="field"><label>有效天数要求</label><input type="number" id="newValidDays" value="${p.validDaysRequired||26}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></div>
+                <div class="field"><label>总天数要求</label><input type="number" id="newTotalDays" value="${p.totalDaysRequired||30}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></div>
+                <div class="field"><label>日单量要求</label><input type="number" id="newDailyOrders" value="${p.minDailyOrders||16}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></div>
+                <div class="field"><label>日在线时长</label><input type="number" step="0.5" id="newDailyHours" value="${p.minOnlineHours||6.5}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></div>
+                <div class="field"><label>总单量要求（可选）</label><input type="number" id="newTotalOrders" value="${p.totalOrdersRequired||''}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></div>
+            </div>
+            <div id="multiPhaseFields" style="display:${isMulti?'block':'none'};margin-top:12px;">
+                <label style="font-size:13px;color:#666;">多期配置（每期一行：有效天数,总单量,日单量,日时长,奖励金额）</label>
+                <textarea id="newPhaseConfig" style="width:100%;height:80px;font-size:12px;border:1px solid #ddd;border-radius:4px;padding:8px;margin-top:8px;">${phaseText}</textarea>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:12px;">
+                <button class="btn-primary" onclick="saveEditPolicy('${code}')">保存修改</button>
+                <button class="btn-export" onclick="document.getElementById('policyFormSection').remove()">取消</button>
+            </div>
+            <div class="file-info" id="policyFormResult"></div>
+        </div>`;
+
+        document.querySelector('.container').insertAdjacentHTML('beforeend',formHtml);
+        const citySel=document.getElementById('newPolicyCity');
+        for(const[cc,nn]of Object.entries(CITY_NAMES)){
+            const opt=document.createElement('option');opt.value=cc;opt.textContent=nn;
+            if(cc===(p.city||currentCity))opt.selected=true;
+            citySel.appendChild(opt);
+        }
+    }
+
+    function saveEditPolicy(oldCode){
+        const code=document.getElementById('newPolicyCode').value.trim();
+        const name=document.getElementById('newPolicyName').value.trim();
+        const city=document.getElementById('newPolicyCity').value;
+        const type=document.getElementById('newPolicyType').value;
+        const reward=parseFloat(document.getElementById('newPolicyReward').value);
+        const resultEl=document.getElementById('policyFormResult');
+
+        if(!name){resultEl.textContent='请填写政策名称';resultEl.className='file-info error';return;}
+        if(isNaN(reward)||reward<0){resultEl.textContent='请填写有效金额';resultEl.className='file-info error';return;}
+
+        // Remove old policy from city list if code changed
+        if(code!==oldCode){
+            const oldPolicy=POLICIES[oldCode];
+            if(oldPolicy&&oldPolicy.city&&CITY_POLICIES[oldPolicy.city]){
+                CITY_POLICIES[oldPolicy.city]=CITY_POLICIES[oldPolicy.city].filter(c=>c!==oldCode);
+            }
+            delete POLICIES[oldCode];
+        }
+
+        const newPolicy={name,code,city,type,rewardAmount:reward,fullDayHoursCol:'online_hours',peakHoursCol:'online_hours',hasPeaks:false,
+            year:parseInt(document.getElementById('newPolicyYear').value)||2026,
+            months:document.getElementById('newPolicyMonths').value?document.getElementById('newPolicyMonths').value.split(/[,，]/).map(Number).filter(n=>n>0&&n<=12):[],
+            referrerType:document.getElementById('newPolicyRefType').value||'all',
+            stations:[]};
+        if(type==='single'){
+            newPolicy.validDaysRequired=parseInt(document.getElementById('newValidDays').value)||26;
+            newPolicy.totalDaysRequired=parseInt(document.getElementById('newTotalDays').value)||30;
+            newPolicy.minDailyOrders=parseInt(document.getElementById('newDailyOrders').value)||16;
+            newPolicy.minOnlineHours=parseFloat(document.getElementById('newDailyHours').value)||6.5;
+            const to=parseInt(document.getElementById('newTotalOrders').value);
+            newPolicy.totalOrdersRequired=to>0?to:undefined;
+        }else{
+            const phaseText=document.getElementById('newPhaseConfig').value.trim();
+            const phases=[];
+            const lines=phaseText.split('\n').filter(l=>l.trim());
+            for(let i=0;i<lines.length;i++){
+                const parts=lines[i].split(/[,，]/).map(s=>s.trim());
+                if(parts.length>=5&&!isNaN(Number(parts[0]))){
+                    const[vd,to,do2,dh,rw]=parts.map(Number);
+                    phases.push({validDays:vd,totalOrders:to,dailyOrders:do2,dailyHours:dh,reward:rw});
+                }
+            }
+            newPolicy.phases=phases;
+        }
+
+        POLICIES[code]=newPolicy;
+        if(!CITY_POLICIES[city]) CITY_POLICIES[city]=[];
+        if(!CITY_POLICIES[city].includes(code)) CITY_POLICIES[city].push(code);
+        savePolicies();
+        refreshPolicyList();
+        onCityChange();
+        resultEl.textContent='政策已保存！';resultEl.className='file-info success';
+        showSuccess('政策"'+name+'"已更新');
+        setTimeout(()=>{const f=document.getElementById('policyFormSection');if(f)f.remove();},2000);
+    }
+
+    function deletePolicy(code){
+        if(!confirm('确定删除政策"'+POLICIES[code].name+'"？')) return;
+        const policy=POLICIES[code];
+        if(policy.city&&CITY_POLICIES[policy.city]){
+            CITY_POLICIES[policy.city]=CITY_POLICIES[policy.city].filter(c=>c!==code);
+        }
+        delete POLICIES[code];
+        savePolicies();
+        refreshPolicyList();
+        onCityChange();
+        showSuccess('政策已删除');
+    }
 
     // ============================================================
     // UI Helpers
     // ============================================================
-    function showError(msg) {
-        const t = document.getElementById('errorToast');
-        t.textContent = msg;
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 5000);
-    }
-    function showSuccess(msg) {
-        const t = document.getElementById('successToast');
-        t.textContent = msg;
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 3000);
-    }
-    function toggleHistory() {
-        const panel = document.getElementById('historyPanel');
-        const toggle = document.getElementById('historyToggle');
-        panel.classList.toggle('show');
-        toggle.textContent = panel.classList.contains('show')
-            ? '▼ 历史发放记录（可选，用于自动判断期数）'
-            : '▶ 历史发放记录（可选，用于自动判断期数）';
-    }
+    function showError(msg) { const t=document.getElementById('errorToast'); t.textContent=msg; t.classList.add('show','error'); setTimeout(()=>t.classList.remove('show','error'),5000); }
+    function showSuccess(msg) { const t=document.getElementById('successToast'); t.textContent=msg; t.classList.add('show','success'); setTimeout(()=>t.classList.remove('show','success'),3000); }
+    function toString(val) { if(val===null||val===undefined) return ''; return String(val).trim(); }
+    function toNumber(val) { if(val===null||val===undefined||val==='') return 0; if(typeof val==='number') return val; const c=String(val).replace(/[,，\s]/g,''); const n=parseFloat(c); return isNaN(n)?0:n; }
+    function toHours(val) { if(val===null||val===undefined||val==='') return 0; if(typeof val==='number') return val*24; if(typeof val==='string'){const p=val.split(':');if(p.length>=2){const h=parseFloat(p[0])||0,m=parseFloat(p[1])||0,s=p.length>2?(parseFloat(p[2])||0):0;return h+m/60+s/3600;}const n=parseFloat(val);if(!isNaN(n))return n*24;} return 0; }
+    function isFullDay(p){const s=toString(p);return s==='全天'||s.includes('早餐')||s.includes('午餐')||s.includes('晚餐')||(!s.includes('午高峰')&&!s.includes('晚高峰')&&s.length>0);}
+    function isLunchPeak(p){return toString(p).includes('午高峰');}
+    function isDinnerPeak(p){return toString(p).includes('晚高峰');}
 
-    // Verify mode change
-    document.getElementById('verifyMode').addEventListener('change', function() {
-        document.getElementById('singlePolicyField').style.display =
-            this.value === 'single' ? 'flex' : 'none';
-    });
+    /**
+     * Format date to YYYY/MM/DD
+     * Handles: Date objects, "Wed Mar 25 2026..." strings, "2026-03-25" strings, numbers (Excel serial)
+     */
+    function formatDate(val) {
+        if (!val) return '';
+        let d;
+        if (val instanceof Date) {
+            d = val;
+        } else if (typeof val === 'number') {
+            // Excel serial date
+            d = new Date((val - 25569) * 86400 * 1000);
+        } else {
+            const s = String(val).trim();
+            // Try parsing various formats
+            d = new Date(s);
+            if (isNaN(d.getTime())) return s; // Return as-is if can't parse
+        }
+        if (isNaN(d.getTime())) return String(val);
+        const y = d.getFullYear();
+        const m = d.getMonth() + 1;
+        const day = d.getDate();
+        return `${y}/${m}/${day}`;
+    }
 
     // ============================================================
-    // File Reading Utilities
+    // File Reading
     // ============================================================
-    function readFileAsArrayBuffer(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = e => resolve(e.target.result);
-            reader.onerror = reject;
-            reader.readAsArrayBuffer(file);
-        });
-    }
-    function readFileAsText(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = e => resolve(e.target.result);
-            reader.onerror = reject;
-            reader.readAsText(file, 'UTF-8');
-        });
-    }
-
-    function parseExcelFile(file) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                let data;
-                if (file.name.endsWith('.csv')) {
-                    const text = await readFileAsText(file);
-                    // Parse CSV
-                    const lines = text.split(/\r?\n/).filter(l => l.trim());
-                    const result = [];
-                    for (const line of lines) {
-                        // Simple CSV parsing (handles quoted fields)
-                        const row = [];
-                        let inQuote = false;
-                        let cell = '';
-                        for (let i = 0; i < line.length; i++) {
-                            const ch = line[i];
-                            if (ch === '"') {
-                                if (inQuote && line[i+1] === '"') { cell += '"'; i++; }
-                                else { inQuote = !inQuote; }
-                            } else if (ch === ',' && !inQuote) {
-                                row.push(cell.trim());
-                                cell = '';
-                            } else {
-                                cell += ch;
-                            }
-                        }
-                        row.push(cell.trim());
-                        result.push(row);
-                    }
-                    data = result;
-                } else {
-                    const buffer = await readFileAsArrayBuffer(file);
-                    const wb = XLSX.read(buffer, { type: 'array', cellDates: true });
-                    const ws = wb.Sheets[wb.SheetNames[0]];
-                    // Use raw: true to preserve original data types (numbers stay numbers, no scientific notation)
-                    data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true });
-                }
-                resolve(data);
-            } catch (e) {
-                reject(e);
-            }
-        });
-    }
+    function readFileAsArrayBuffer(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=e=>resolve(e.target.result);r.onerror=reject;r.readAsArrayBuffer(file);});}
+    function readFileAsText(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=e=>resolve(e.target.result);r.onerror=reject;r.readAsText(file,'UTF-8');});}
+    function parseExcelFile(file){return new Promise(async(resolve,reject)=>{try{let data;if(file.name.endsWith('.csv')){const text=await readFileAsText(file);const lines=text.split(/\r?\n/).filter(l=>l.trim());data=[];for(const line of lines){const row=[];let inQ=false,cell='';for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(inQ&&line[i+1]==='"'){cell+='"';i++;}else{inQ=!inQ;}}else if(ch===','&&!inQ){row.push(cell.trim());cell='';}else{cell+=ch;}}row.push(cell.trim());data.push(row);}}else{const buf=await readFileAsArrayBuffer(file);const wb=XLSX.read(buf,{type:'array',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];data=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true});}resolve(data);}catch(e){reject(e);}});}
 
     // ============================================================
     // Attendance File Upload
     // ============================================================
-    document.getElementById('attendanceFile').addEventListener('change', async function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        document.getElementById('attendanceFileName').textContent = file.name;
-        const infoEl = document.getElementById('attendanceFileInfo');
-        infoEl.textContent = '正在读取文件...';
-        infoEl.className = 'file-info';
-
-        try {
-            attendanceData = await parseExcelFile(file);
-            if (attendanceData.length < 2) {
-                infoEl.textContent = '文件数据不足，至少需要标题行和一行数据';
-                infoEl.className = 'file-info error';
-                return;
-            }
-
-            attendanceHeaders = attendanceData[0].map((h, i) => `${h || '列'+(i+1)}`);
-            const colCount = attendanceData[0].length;
-            const rowCount = attendanceData.length - 1;
-            infoEl.textContent = `已加载: ${file.name}（${rowCount}行，${colCount}列）`;
-            infoEl.className = 'file-info success';
-
-            // Populate column mapping dropdowns
-            populateColumnDropdowns();
-            // Auto-detect columns
-            autoDetectColumns();
-        } catch (err) {
-            infoEl.textContent = '文件读取失败: ' + err.message;
-            infoEl.className = 'file-info error';
-        }
+    document.getElementById('attendanceFile').addEventListener('change', async function(e){
+        const file=e.target.files[0]; if(!file) return;
+        document.getElementById('attendanceFileName').textContent=file.name;
+        const infoEl=document.getElementById('attendanceFileInfo');
+        infoEl.textContent='正在读取...'; infoEl.className='file-info';
+        try{
+            attendanceData=await parseExcelFile(file);
+            if(attendanceData.length<2){infoEl.textContent='数据不足';infoEl.className='file-info error';return;}
+            attendanceHeaders=attendanceData[0].map((h,i)=>`${h||'列'+(i+1)}`);
+            infoEl.textContent=`已加载: ${file.name}（${attendanceData.length-1}行，${attendanceData[0].length}列）`;
+            infoEl.className='file-info success';
+            populateColumnDropdowns(); autoDetectColumns();
+        }catch(err){infoEl.textContent='读取失败: '+err.message;infoEl.className='file-info error';}
     });
 
-    function populateColumnDropdowns() {
-        const selects = ['colRiderId', 'colName', 'colDate', 'colPeriod', 'colOrders', 'colFullDayHours', 'colPeakHours'];
-        selects.forEach(id => {
-            const sel = document.getElementById(id);
-            sel.innerHTML = '<option value="">-- 请选择 --</option>';
-            attendanceHeaders.forEach((h, i) => {
-                const opt = document.createElement('option');
-                opt.value = i;
-                opt.textContent = `[${i+1}] ${h}`;
-                sel.appendChild(opt);
-            });
+    function populateColumnDropdowns(){
+        ['colRiderId','colName','colDate','colPeriod','colOrders','colFullDayHours','colPeakHours'].forEach(id=>{
+            const sel=document.getElementById(id); sel.innerHTML='<option value="">-- 请选择 --</option>';
+            attendanceHeaders.forEach((h,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`[${i+1}] ${h}`;sel.appendChild(o);});
         });
     }
 
-    function autoDetectColumns() {
-        // Order matters: more specific keywords first to avoid false matches
-        // e.g. "骑手ID" must be checked before "骑手" to avoid matching "骑手姓名"
-        const hints = {
-            colRiderId: ['骑手id', '骑手编号', 'rider_id', '入职骑手id'],
-            colName: ['骑手姓名', '姓名', 'rider_name', '入职骑手姓名', '名字'],
-            colDate: ['考勤日期', '日期', 'date', '时间'],
-            colPeriod: ['时段', 'period', '时间段', '班次类型'],
-            colOrders: ['完单量', '完成单量', '订单量', '单量', 'orders'],
-            colFullDayHours: ['有效在线时长', '在线时长', 'hours', '时长'],
-            colPeakHours: ['在线时长', 'hours', '时长']
-        };
-
-        const usedCols = new Set();
-
-        for (const [selectId, keywords] of Object.entries(hints)) {
-            const sel = document.getElementById(selectId);
-            let matched = false;
-
-            // First pass: exact or contains match, preferring earlier (more specific) keywords
-            for (const kw of keywords) {
-                for (let i = 0; i < attendanceHeaders.length; i++) {
-                    const header = attendanceHeaders[i].toLowerCase();
-                    if (header === kw || header.includes(kw)) {
-                        // For rider ID, make sure it's not actually a name column
-                        if (selectId === 'colRiderId' && (header.includes('姓名') || header.includes('name'))) {
-                            continue; // Skip name columns for rider ID
-                        }
-                        // For name, make sure it's not an ID column
-                        if (selectId === 'colName' && (header.includes('id') || header.includes('编号'))) {
-                            continue;
-                        }
-                        sel.value = i;
-                        usedCols.add(i);
-                        matched = true;
-                        break;
-                    }
-                }
-                if (matched) break;
-            }
-        }
+    function autoDetectColumns(){
+        const hints={colRiderId:['骑手id','骑手编号','rider_id','入职骑手id'],colName:['骑手姓名','姓名','rider_name','入职骑手姓名'],colDate:['考勤日期','日期','date'],colPeriod:['时段','period','时间段'],colOrders:['完单量','完成单量','订单量','单量'],colFullDayHours:['有效在线时长','在线时长','hours'],colPeakHours:['在线时长','hours']};
+        for(const[selId,kws]of Object.entries(hints)){const sel=document.getElementById(selId);for(const kw of kws){for(let i=0;i<attendanceHeaders.length;i++){const h=attendanceHeaders[i].toLowerCase();if(h===kw||h.includes(kw)){if(selId==='colRiderId'&&(h.includes('姓名')||h.includes('name')))continue;if(selId==='colName'&&(h.includes('id')||h.includes('编号')))continue;sel.value=i;break;}}}}
     }
-
-    // ============================================================
-    // Policy Config Upload
-    // ============================================================
-    document.getElementById('policyFile').addEventListener('change', async function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        document.getElementById('policyFileName').textContent = file.name;
-        const infoEl = document.getElementById('policyFileInfo');
-
-        try {
-            const text = await readFileAsText(file);
-            const config = JSON.parse(text);
-            if (config.cities) {
-                const merge = document.getElementById('mergePolicy').checked;
-                if (merge) {
-                    Object.assign(POLICIES, config.cities);
-                } else {
-                    // Replace all policies
-                    for (const key in POLICIES) delete POLICIES[key];
-                    Object.assign(POLICIES, config.cities);
-                }
-                const count = Object.keys(POLICIES).length;
-                infoEl.textContent = `已加载 ${count} 套政策（${merge ? '合并' : '替换'}模式）`;
-                infoEl.className = 'file-info success';
-                showSuccess(`成功加载 ${count} 套政策配置`);
-            }
-        } catch (err) {
-            infoEl.textContent = '政策文件解析失败: ' + err.message;
-            infoEl.className = 'file-info error';
-        }
-    });
 
     // ============================================================
     // Rider List Upload
     // ============================================================
-    document.getElementById('riderListFile').addEventListener('change', async function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        document.getElementById('riderListFileName').textContent = file.name;
-        const infoEl = document.getElementById('riderListInfo');
-
-        try {
-            riderListData = await parseExcelFile(file);
-            if (riderListData.length < 2) {
-                infoEl.textContent = '骑手名单数据不足';
-                infoEl.className = 'file-info error';
-                return;
-            }
-            const headers = riderListData[0];
-            const count = riderListData.length - 1;
-            infoEl.textContent = `已加载${count}条，列: ${headers.join('、')}`;
-            infoEl.className = 'file-info success';
-        } catch (err) {
-            infoEl.textContent = '文件读取失败: ' + err.message;
-            infoEl.className = 'file-info error';
-        }
+    document.getElementById('riderListFile').addEventListener('change', async function(e){
+        const file=e.target.files[0]; if(!file) return;
+        document.getElementById('riderListFileName').textContent=file.name;
+        const infoEl=document.getElementById('riderListInfo');
+        try{
+            riderListData=await parseExcelFile(file);
+            if(riderListData.length<2){infoEl.textContent='数据不足';infoEl.className='file-info error';return;}
+            const headers=riderListData[0].map(h=>toString(h));
+            infoEl.textContent=`已加载${riderListData.length-1}条，列: ${headers.join('、')}`;
+            infoEl.className='file-info success';
+        }catch(err){infoEl.textContent='读取失败: '+err.message;infoEl.className='file-info error';}
     });
 
     // History file upload
-    document.getElementById('historyFile').addEventListener('change', async function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        document.getElementById('historyFileName').textContent = file.name;
-        try {
-            historyData = await parseExcelFile(file);
-            // Parse and index history data
-            historyIndex = buildHistoryIndex(historyData);
-            const recordCount = historyData.length - 1;
-            const referrerCount = Object.keys(historyIndex).length;
-            showSuccess(`历史发放记录已加载（${recordCount}条，涉及${referrerCount}位介绍人）`);
-            console.log('[历史] 已加载', recordCount, '条记录，', referrerCount, '位介绍人');
-        } catch (err) {
-            showError('历史文件读取失败: ' + err.message);
+    document.getElementById('historyFile').addEventListener('change', async function(e){
+        const file=e.target.files[0]; if(!file) return;
+        document.getElementById('historyFileName').textContent=file.name;
+        try{
+            historyData=await parseExcelFile(file);
+            historyIndex=buildHistoryIndex(historyData);
+            const rc=historyData.length-1, refc=Object.keys(historyIndex).length;
+            showSuccess(`历史发放记录已加载（${rc}条，涉及${refc}位介绍人）`);
+            document.getElementById('historyInfo').textContent=`已加载${rc}条历史发放记录`;
+            document.getElementById('historyInfo').className='file-info success';
+        }catch(err){showError('历史文件读取失败: '+err.message);}
+    });
+
+    // ============================================================
+    // Policy File Upload (supports PDF, Word, Excel, JSON)
+    // ============================================================
+    document.getElementById('policyFile').addEventListener('change', async function(e){
+        const files=e.target.files; if(!files||files.length===0) return;
+        const infoEl=document.getElementById('policyFileInfo');
+        document.getElementById('policyFileName').textContent=`已选择${files.length}个文件`;
+        infoEl.textContent=`正在解析${files.length}个政策文件...`;
+        infoEl.className='file-info';
+
+        let successCount=0, failCount=0;
+        const allParsed=[];
+
+        for(let fi=0;fi<files.length;fi++){
+            const file=files[fi];
+            try{
+                let policyText='';
+                const ext=file.name.split('.').pop().toLowerCase();
+
+            if(ext==='json'){
+                const text=await readFileAsText(file);
+                const config=JSON.parse(text);
+                if(config.policies){
+                    const errors=validatePolicies(config.policies);
+                    if(errors.length>0){infoEl.textContent='政策校验失败：'+errors.join('；');infoEl.className='file-info error';return;}
+                    Object.assign(POLICIES, config.policies);
+                    for(const[code,policy]of Object.entries(config.policies)){
+                        if(policy.city&&!CITY_POLICIES[policy.city]) CITY_POLICIES[policy.city]=[];
+                        if(policy.city&&!CITY_POLICIES[policy.city].includes(code)) CITY_POLICIES[policy.city].push(code);
+                    }
+                    savePolicies();
+                    infoEl.textContent=`已加载${Object.keys(config.policies).length}个新政策`;
+                    infoEl.className='file-info success';
+                    showSuccess('政策配置加载成功');
+                    onCityChange();
+                    return;
+                }
+            }else if(ext==='doc'){
+                // .doc is old binary format, try to extract readable text
+                const arrayBuffer=await readFileAsArrayBuffer(file);
+                const uint8=new Uint8Array(arrayBuffer);
+                // Extract text by finding sequences of printable characters (including Chinese)
+                let text='';
+                let buffer='';
+                for(let i=0;i<uint8.length;i++){
+                    const byte=uint8[i];
+                    // Check for UTF-16LE encoded text (common in .doc)
+                    if(i+1<uint8.length){
+                        const charCode=uint8[i]|(uint8[i+1]<<8);
+                        if((charCode>=0x4e00&&charCode<=0x9fff)|| // Chinese
+                           (charCode>=0x3000&&charCode<=0x303f)|| // CJK symbols
+                           (charCode>=0xff00&&charCode<=0xffef)|| // Fullwidth
+                           (charCode>=0x20&&charCode<=0x7e)){     // ASCII
+                            buffer+=String.fromCharCode(charCode);
+                            i++; // Skip next byte (already read as UTF-16LE)
+                            continue;
+                        }
+                    }
+                    if(buffer.length>2){
+                        // Filter out garbage
+                        const cleaned=buffer.replace(/[^\u4e00-\u9fff\u3000-\u303f\uff00-\uffef\x20-\x7e\n\r\t]/g,'');
+                        if(cleaned.length>1) text+=cleaned+'\n';
+                    }
+                    buffer='';
+                }
+                // Also try raw ASCII extraction
+                if(text.length<50){
+                    text='';
+                    let asciiBuf='';
+                    for(let i=0;i<uint8.length;i++){
+                        const b=uint8[i];
+                        if(b>=0x20&&b<=0x7e||b===0x0a||b===0x0d){
+                            asciiBuf+=String.fromCharCode(b);
+                        }else{
+                            if(asciiBuf.length>3) text+=asciiBuf+'\n';
+                            asciiBuf='';
+                        }
+                    }
+                }
+                policyText=text.trim();
+                if(policyText.length<10){
+                    infoEl.textContent='.doc文件未能提取到足够文本，请用Word另存为.docx格式后重新上传';
+                    infoEl.className='file-info error';
+                    return;
+                }
+            }else if(ext==='docx'){
+                const arrayBuffer=await readFileAsArrayBuffer(file);
+                const result=await mammoth.extractRawText({arrayBuffer:arrayBuffer});
+                policyText=result.value;
+            }else if(ext==='pdf'){
+                pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                const arrayBuffer=await readFileAsArrayBuffer(file);
+                const pdf=await pdfjsLib.getDocument({data:arrayBuffer}).promise;
+                let fullText='';
+                for(let i=1;i<=pdf.numPages;i++){
+                    const page=await pdf.getPage(i);
+                    const textContent=await page.getTextContent();
+                    fullText+=textContent.items.map(item=>item.str).join(' ')+'\n';
+                }
+                policyText=fullText;
+            }else if(ext==='xlsx'||ext==='xls'){
+                const data=await parseExcelFile(file);
+                policyText=data.map(row=>row.join(' ')).join('\n');
+            }
+
+            if(policyText){
+                console.log('[政策] 提取文本:', policyText.substring(0, 500));
+                const parsed=autoParsePolicy(policyText);
+                parsed.name=parsed.name||file.name.replace(/\.[^.]+$/,'');
+                allParsed.push({text:policyText, parsed, fileName:file.name});
+                successCount++;
+            }else{
+                failCount++;
+            }
+        }catch(err){
+            failCount++;
+            console.warn('[政策] 文件'+file.name+'解析失败:', err.message);
+        }
+        } // end for loop
+
+        // Show results
+        if(allParsed.length===0){
+            infoEl.textContent=`${files.length}个文件均未成功解析`;
+            infoEl.className='file-info error';
+        }else if(allParsed.length===1){
+            // Single file: show form for confirmation
+            showPolicyForm(allParsed[0].text, allParsed[0].parsed);
+            infoEl.textContent=`已识别"${allParsed[0].fileName}"的政策条件，请在表单中确认/修改`;
+            infoEl.className='file-info success';
+        }else{
+            // Multiple files: auto-add all policies
+            for(const item of allParsed){
+                const p=item.parsed;
+                const code=p.name?p.name.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]/g,'_').substring(0,30):('policy_'+Date.now());
+                const newPolicy={name:p.name||item.fileName,code:p.code||code,city:p.city||currentCity,type:p.type,rewardAmount:p.reward||0,fullDayHoursCol:'online_hours',peakHoursCol:'online_hours',hasPeaks:p.hasPeaks||false};
+                if(p.type==='single'){
+                    newPolicy.validDaysRequired=p.validDays||26;
+                    newPolicy.totalDaysRequired=p.totalDays||30;
+                    newPolicy.minDailyOrders=p.dailyOrders||16;
+                    newPolicy.minOnlineHours=p.dailyHours||6.5;
+                    newPolicy.totalOrdersRequired=p.totalOrders||undefined;
+                    if(p.lunchMinHours){newPolicy.lunchMinHours=p.lunchMinHours;newPolicy.lunchMinOrders=p.lunchMinOrders||0;newPolicy.dinnerMinHours=p.dinnerMinHours||0;}
+                }else if(p.type==='multi_phase'){
+                    newPolicy.phases=p.phases;
+                }
+                POLICIES[newPolicy.code]=newPolicy;
+                if(!CITY_POLICIES[newPolicy.city]) CITY_POLICIES[newPolicy.city]=[];
+                if(!CITY_POLICIES[newPolicy.city].includes(newPolicy.code)) CITY_POLICIES[newPolicy.city].push(newPolicy.code);
+            }
+            savePolicies();
+            refreshPolicyList();
+            onCityChange();
+            infoEl.textContent=`成功解析${successCount}个政策文件，已自动添加${allParsed.length}个新政策${failCount>0?'，'+failCount+'个失败':''}`;
+            infoEl.className='file-info success';
+            showSuccess(`已添加${allParsed.length}个新政策`);
         }
     });
 
     // ============================================================
-    // History Parsing & Phase Detection
+    // Auto-parse policy conditions from document text
     // ============================================================
-    let historyIndex = {}; // referrerId -> [{policyCode, phaseNum, note, row}]
+    function autoParsePolicy(text){
+        const result={name:'',city:'weifang',type:'single',reward:0,
+            validDays:0,totalDays:30,dailyOrders:0,dailyHours:0,totalOrders:0,
+            lunchMinHours:0,lunchMinOrders:0,dinnerMinHours:0,
+            hasPeaks:false,phases:[]};
 
-    /**
-     * Extract phase number from note string.
-     * Matches patterns like: 第一期, 第1期, 第2期, 第一期, 二期
-     * Returns phase number (1-based) or 0 if not found.
-     */
-    function extractPhaseNumber(note) {
-        if (!note) return 0;
-        const str = toString(note);
-        // Match "第X期" or "X期" patterns
-        const match = str.match(/第?\s*(\d+|[一二三四五六七八九十]+)\s*期/);
-        if (!match) return 0;
-        const numStr = match[1];
-        // Convert Chinese numerals to numbers
-        const cnNums = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10 };
-        if (cnNums[numStr]) return cnNums[numStr];
-        return parseInt(numStr) || 0;
+        // ===== 1. 识别城市 =====
+        if(text.includes('上海')) result.city='shanghai';
+        else if(text.includes('青岛')) result.city='qingdao';
+        else if(text.includes('潍坊')) result.city='weifang';
+
+        // ===== 1b. 识别年份 =====
+        const yearMatch=text.match(/20(2[5-9]|3[0-1])\s*年/);
+        if(yearMatch) result.year=parseInt(yearMatch[0]);
+
+        // ===== 1c. 识别推荐人类型 =====
+        if(text.includes('内推')) result.referrerType='内推';
+        else if(text.includes('中介')||text.includes('人资')) result.referrerType='中介';
+
+        // ===== 2. 识别政策名称 =====
+        const titleMatch=text.match(/^[^\n]{5,50}/m);
+        if(titleMatch){
+            let title=titleMatch[0].trim();
+            title=title.replace(/^(附件|关于|通知|：|:)\s*/,'');
+            if(title.length>=4&&title.length<=60) result.name=title;
+        }
+
+        // ===== 3. 识别总奖励金额 =====
+        const rewardPatterns=[/奖励.*?(\d{3,4})\s*元/,/补贴.*?共计.*?(\d{3,4})\s*元/,/(\d{3,4})\s*元.*?分[两二2三3]\s*个/,/(\d{3,4})\s*元/];
+        for(const pat of rewardPatterns){const m=text.match(pat);if(m){result.reward=parseInt(m[1]);break;}}
+
+        // ===== 4. 识别有效出勤天数 =====
+        const vdPatterns=[/有效出勤.*?(\d+)\s*天/g,/有效天数.*?(\d+)\s*天/g,/出勤天数.*?(\d+)\s*天/g,/(\d+)\s*天.*?有效/g];
+        for(const pat of vdPatterns){const matches=[...text.matchAll(pat)];for(const m of matches){const v=parseInt(m[1]);if(v>=15&&v<=31){result.validDays=v;break;}}if(result.validDays)break;}
+
+        // ===== 5. 识别每日单量 =====
+        const doPatterns=[/每日.*?(\d{1,2})\s*单/,/日单.*?(\d{1,2})\s*单/,/完成.*?(\d{1,2})\s*单.*?计.*?天/];
+        for(const pat of doPatterns){const m=text.match(pat);if(m){const v=parseInt(m[1]);if(v>=5&&v<=50){result.dailyOrders=v;break;}}}
+
+        // ===== 6. 识别每日在线时长 =====
+        const dhPatterns=[/每日.*?在线.*?(\d+\.?\d*)\s*(?:小时|h)/,/有效在线.*?(\d+\.?\d*)\s*(?:小时|h)/,/在线时长.*?(\d+\.?\d*)\s*(?:小时|h)/];
+        for(const pat of dhPatterns){const m=text.match(pat);if(m){const v=parseFloat(m[1]);if(v>=3&&v<=15){result.dailyHours=v;break;}}}
+
+        // ===== 7. 识别午高峰要求 =====
+        const lunchPatterns=[/午高峰.*?(\d+\.?\d*)\s*(?:小时|h)/,/午高峰.*?在线.*?(\d+\.?\d*)/,/午高峰.*?>*=?\s*(\d+\.?\d*)/];
+        for(const pat of lunchPatterns){const m=text.match(pat);if(m){const v=parseFloat(m[1]);if(v>=1&&v<=6){result.lunchMinHours=v;result.hasPeaks=true;break;}}}
+        const loPatterns=[/午高峰.*?单.*?(\d{1,2})/,/午高峰.*?(\d{1,2})\s*单/];
+        for(const pat of loPatterns){const m=text.match(pat);if(m){const v=parseInt(m[1]);if(v>=1&&v<=20){result.lunchMinOrders=v;break;}}}
+
+        // ===== 8. 识别晚高峰要求 =====
+        const dinnerPatterns=[/晚高峰.*?(\d+\.?\d*)\s*(?:小时|h)/,/晚高峰.*?在线.*?(\d+\.?\d*)/,/晚高峰.*?>*=?\s*(\d+\.?\d*)/];
+        for(const pat of dinnerPatterns){const m=text.match(pat);if(m){const v=parseFloat(m[1]);if(v>=1&&v<=6){result.dinnerMinHours=v;result.hasPeaks=true;break;}}}
+
+        // ===== 9. 识别总单量 =====
+        const toPatterns=[/总单.*?(\d{2,4})\s*单/,/(\d{2,4})\s*单.*?总/];
+        for(const pat of toPatterns){const m=text.match(pat);if(m){const v=parseInt(m[1]);if(v>=100&&v<=5000){result.totalOrders=v;break;}}}
+
+        // ===== 10. 识别多期 =====
+        const hasPhase1=text.includes('第一期')||text.includes('第一个月');
+        const hasPhase2=text.includes('第二期')||text.includes('第二个月');
+        const hasPhase3=text.includes('第三期')||text.includes('第三个月');
+        const splitMatch=text.match(/分[两二2三3]\s*[个多月]/);
+
+        if((hasPhase2||hasPhase3||splitMatch)&&result.reward>0){
+            result.type='multi_phase';
+            const phaseBlocks=[];
+            if(hasPhase1) phaseBlocks.push(1);
+            if(hasPhase2) phaseBlocks.push(2);
+            if(hasPhase3) phaseBlocks.push(3);
+            const cnNums=['一','二','三'];
+            for(const phaseNum of phaseBlocks){
+                let phaseText='';
+                if(text.includes('第'+cnNums[phaseNum-1]+'个月')){const parts=text.split('第'+cnNums[phaseNum-1]+'个月');if(parts[1])phaseText=parts[1].split(/第[一二三]个月|第[一二三四]期|注[：:]/)[0];}
+                if(!phaseText&&text.includes('第'+phaseNum+'期')){const parts=text.split('第'+phaseNum+'期');if(parts[1])phaseText=parts[1].split('第'+(phaseNum+1)+'期')[0];}
+                if(!phaseText){const idx=text.indexOf('第'+phaseNum+'期');if(idx>=0)phaseText=text.substring(idx,Math.min(idx+100,text.length));}
+                let phaseReward=0;
+                if(phaseText){const rMatch=phaseText.match(/(\d{3,4})\s*元/);if(rMatch)phaseReward=parseInt(rMatch[1]);if(!phaseReward){const rParts=phaseText.match(/(\d{2,4})\s*元/g);if(rParts)phaseReward=rParts.map(r=>parseInt(r)).reduce((a,b)=>a+b,0);}}
+                if(!phaseReward)phaseReward=Math.round(result.reward/phaseBlocks.length);
+                const pDays=phaseText?phaseText.match(/(\d+)\s*天/):null;
+                const pOrders=phaseText?phaseText.match(/(\d{2,4})\s*单/):null;
+                result.phases.push({validDays:pDays?parseInt(pDays[1]):(result.validDays||(phaseNum===1?26:27)),totalOrders:pOrders?parseInt(pOrders[1]):(phaseNum===1?700:900),dailyOrders:result.dailyOrders||16,dailyHours:result.dailyHours||6.5,reward:phaseReward});
+            }
+        }
+
+        console.log('[自动解析结果]',JSON.stringify(result,null,2));
+        return result;
+    }
+
+    // Show policy creation form with auto-parsed data
+    function showPolicyForm(referenceText, parsed){
+        const existingForm=document.getElementById('policyFormSection');
+        if(existingForm) existingForm.remove();
+
+        const p=parsed||{};
+        const phaseText=(p.phases||[]).map(ph=>`${ph.validDays},${ph.totalOrders},${ph.dailyOrders},${ph.dailyHours},${ph.reward}`).join('\n');
+        const isMulti=p.type==='multi_phase';
+
+        const formHtml=`
+        <div class="section" id="policyFormSection">
+            <div class="section-title">新政策配置 <span style="font-size:12px;color:#28a745;font-weight:400;">（绿色为自动识别，请确认/修改）</span></div>
+            <div class="hint-text">参考文本：<br><textarea id="policyRefText" style="width:100%;height:80px;font-size:11px;border:1px solid #ddd;border-radius:4px;padding:8px;margin-top:4px;">${referenceText.substring(0, 800)}</textarea></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px;">
+                <div class="field"><label>政策代码（英文）*</label><input type="text" id="newPolicyCode" value="${p.name?p.name.toLowerCase().replace(/[^a-z0-9]/g,'_').substring(0,30):''}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" placeholder="如: new_policy_2026"></div>
+                <div class="field"><label>政策名称*（自己写）</label><input type="text" id="newPolicyName" value="${p.name||''}" style="padding:8px;border:2px solid #28a745;border-radius:4px;width:100%;" placeholder="如: 2026年4月-潍坊-中介1300-全站点"></div>
+                <div class="field"><label>所属城市*</label><select id="newPolicyCity" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"></select></div>
+                <div class="field"><label>适用年份</label><input type="number" id="newPolicyYear" value="${p.year||2026}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" placeholder="如: 2026"></div>
+                <div class="field"><label>适用月份（逗号分隔，空=不限）</label><input type="text" id="newPolicyMonths" value="${(p.months||[]).join(',')}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" placeholder="如: 4,5,6 或留空不限"></div>
+                <div class="field"><label>推荐人类型</label><select id="newPolicyRefType" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;"><option value="all"${(!p.referrerType||p.referrerType==='all')?' selected':''}>不限</option><option value="中介"${p.referrerType==='中介'?' selected':''}>中介</option><option value="内推"${p.referrerType==='内推'?' selected':''}>内推</option></select></div>
+                <div class="field"><label>政策类型*</label><select id="newPolicyType" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" onchange="togglePolicyFields()"><option value="single"${isMulti?'':' selected'}>单期（一次性）</option><option value="multi_phase"${isMulti?' selected':''}>多期</option></select></div>
+                <div class="field"><label>总奖励金额*</label><input type="number" id="newPolicyReward" value="${p.reward||''}" style="padding:8px;border:2px solid #28a745;border-radius:4px;width:100%;" placeholder="如: 2000"></div>
+            </div>
+            <div id="singlePhaseFields" style="display:${isMulti?'none':'grid'};grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px;">
+                <div class="field"><label>有效天数要求*</label><input type="number" id="newValidDays" value="${p.validDays||''}" style="padding:8px;border:2px solid #28a745;border-radius:4px;width:100%;" placeholder="如: 26"></div>
+                <div class="field"><label>总天数要求</label><input type="number" id="newTotalDays" value="${p.totalDays||30}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" placeholder="如: 30"></div>
+                <div class="field"><label>日单量要求*</label><input type="number" id="newDailyOrders" value="${p.dailyOrders||''}" style="padding:8px;border:2px solid #28a745;border-radius:4px;width:100%;" placeholder="如: 20"></div>
+                <div class="field"><label>日在线时长*</label><input type="number" step="0.5" id="newDailyHours" value="${p.dailyHours||''}" style="padding:8px;border:2px solid #28a745;border-radius:4px;width:100%;" placeholder="如: 8"></div>
+                <div class="field"><label>总单量要求（可选）</label><input type="number" id="newTotalOrders" value="${p.totalOrders||''}" style="padding:8px;border:1px solid #ddd;border-radius:4px;width:100%;" placeholder="如: 900"></div>
+            </div>
+            <div id="multiPhaseFields" style="display:${isMulti?'block':'none'};margin-top:12px;">
+                <label style="font-size:13px;color:#666;">多期配置（每期一行，格式：有效天数,总单量,日单量,日时长,奖励金额）<span style="color:#28a745;">绿色边框=自动识别</span></label>
+                <textarea id="newPhaseConfig" style="width:100%;height:80px;font-size:12px;border:2px solid #28a745;border-radius:4px;padding:8px;margin-top:8px;" placeholder="26,700,16,6.5,1000&#10;27,900,16,6.5,300">${phaseText}</textarea>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:12px;">
+                <button class="btn-primary" onclick="addNewPolicy()">添加政策</button>
+                <button class="btn-export" onclick="document.getElementById('policyFormSection').remove()">取消</button>
+            </div>
+            <div class="file-info" id="policyFormResult"></div>
+        </div>`;
+
+        document.querySelector('.container').insertAdjacentHTML('beforeend', formHtml);
+
+        const citySel=document.getElementById('newPolicyCity');
+        for(const[code,name]of Object.entries(CITY_NAMES)){
+            const opt=document.createElement('option');
+            opt.value=code; opt.textContent=name;
+            if(code===(p.city||currentCity)) opt.selected=true;
+            citySel.appendChild(opt);
+        }
+    }
+
+    function togglePolicyFields(){
+        const type=document.getElementById('newPolicyType').value;
+        document.getElementById('singlePhaseFields').style.display=type==='single'?'grid':'none';
+        document.getElementById('multiPhaseFields').style.display=type==='multi_phase'?'block':'none';
+    }
+
+    // Strict policy validation
+    function validatePolicies(policies){
+        const errors=[];
+        for(const[code,policy]of Object.entries(policies)){
+            if(!code||code.length<3) errors.push(`政策代码"${code}"太短`);
+            if(!policy.name) errors.push(`政策"${code}"缺少名称`);
+            if(!policy.city) errors.push(`政策"${policy.name}"缺少城市`);
+            if(!policy.type||!['single','multi_phase'].includes(policy.type)) errors.push(`政策"${policy.name}"类型无效`);
+            if(policy.type==='single'){
+                if(!policy.validDaysRequired) errors.push(`政策"${policy.name}"缺少有效天数要求`);
+                if(!policy.minOnlineHours) errors.push(`政策"${policy.name}"缺少日在线时长要求`);
+                if(!policy.minDailyOrders) errors.push(`政策"${policy.name}"缺少日单量要求`);
+            }else if(policy.type==='multi_phase'){
+                if(!policy.phases||policy.phases.length===0) errors.push(`政策"${policy.name}"缺少阶段配置`);
+                for(let i=0;i<(policy.phases||[]).length;i++){
+                    const p=policy.phases[i];
+                    if(!p.validDays) errors.push(`政策"${policy.name}"阶段${i+1}缺少有效天数`);
+                    if(!p.totalOrders) errors.push(`政策"${policy.name}"阶段${i+1}缺少总单量`);
+                    if(!p.dailyHours) errors.push(`政策"${policy.name}"阶段${i+1}缺少日时长`);
+                    if(!p.reward&&p.reward!==0) errors.push(`政策"${policy.name}"阶段${i+1}缺少奖励金额`);
+                }
+            }
+        }
+        return errors;
+    }
+
+    function addNewPolicy(){
+        const code=document.getElementById('newPolicyCode').value.trim();
+        const name=document.getElementById('newPolicyName').value.trim();
+        const city=document.getElementById('newPolicyCity').value;
+        const type=document.getElementById('newPolicyType').value;
+        const reward=parseFloat(document.getElementById('newPolicyReward').value);
+        const resultEl=document.getElementById('policyFormResult');
+
+        // Strict validation
+        if(!code||code.length<3){resultEl.textContent='政策代码至少3个字符';resultEl.className='file-info error';return;}
+        if(!name){resultEl.textContent='请填写政策名称';resultEl.className='file-info error';return;}
+        if(isNaN(reward)||reward<=0){resultEl.textContent='请填写有效的奖励金额';resultEl.className='file-info error';return;}
+
+        const newPolicy={name,code,city,type,rewardAmount:reward,fullDayHoursCol:'online_hours',peakHoursCol:'online_hours',hasPeaks:false,
+            year:parseInt(document.getElementById('newPolicyYear').value)||2026,
+            months:document.getElementById('newPolicyMonths').value?document.getElementById('newPolicyMonths').value.split(/[,，]/).map(Number).filter(n=>n>0&&n<=12):[],
+            referrerType:document.getElementById('newPolicyRefType').value||'all',
+            stations:[]};
+
+        if(type==='single'){
+            const validDays=parseInt(document.getElementById('newValidDays').value);
+            const totalDays=parseInt(document.getElementById('newTotalDays').value)||30;
+            const dailyOrders=parseInt(document.getElementById('newDailyOrders').value);
+            const dailyHours=parseFloat(document.getElementById('newDailyHours').value);
+            const totalOrders=parseInt(document.getElementById('newTotalOrders').value)||0;
+
+            if(isNaN(validDays)||validDays<=0){resultEl.textContent='请填写有效的天数要求';resultEl.className='file-info error';return;}
+            if(isNaN(dailyOrders)||dailyOrders<=0){resultEl.textContent='请填写有效的日单量要求';resultEl.className='file-info error';return;}
+            if(isNaN(dailyHours)||dailyHours<=0){resultEl.textContent='请填写有效的日在线时长';resultEl.className='file-info error';return;}
+
+            newPolicy.validDaysRequired=validDays;
+            newPolicy.totalDaysRequired=totalDays;
+            newPolicy.minDailyOrders=dailyOrders;
+            newPolicy.minOnlineHours=dailyHours;
+            newPolicy.totalOrdersRequired=totalOrders>0?totalOrders:undefined;
+        }else if(type==='multi_phase'){
+            const phaseText=document.getElementById('newPhaseConfig').value.trim();
+            if(!phaseText){resultEl.textContent='请填写多期配置';resultEl.className='file-info error';return;}
+
+            const phases=[];
+            const lines=phaseText.split('\n').filter(l=>l.trim());
+            for(let i=0;i<lines.length;i++){
+                const line=lines[i].trim();
+                // Try comma-separated format first: 26,700,16,6.5,1000
+                const parts=line.split(/[,，]/).map(s=>s.trim());
+                let validDays,totalOrders,dailyOrders,dailyHours,rewardAmount;
+
+                if(parts.length>=5&&!isNaN(Number(parts[0]))){
+                    [validDays,totalOrders,dailyOrders,dailyHours,rewardAmount]=parts.map(Number);
+                }else{
+                    // Flexible format: extract numbers from text like "第一期1500元 26天 700单"
+                    const nums=line.match(/\d+\.?\d*/g)||[];
+                    if(nums.length<2){resultEl.textContent=`第${i+1}期数据不足，至少需要天数和金额`;resultEl.className='file-info error';return;}
+                    // Try to identify each number by context
+                    const daysMatch=line.match(/(\d+)\s*天/);
+                    const ordersMatch=line.match(/(\d{2,4})\s*单/);
+                    const hoursMatch=line.match(/(\d+\.?\d*)\s*(?:小时|h)/);
+                    const rewardMatch=line.match(/(\d{3,4})\s*元/);
+
+                    validDays=daysMatch?parseInt(daysMatch[1]):(parseInt(nums[0])>10?parseInt(nums[0]):26);
+                    totalOrders=ordersMatch?parseInt(ordersMatch[1]):(nums.length>=3?parseInt(nums[1]):700);
+                    dailyOrders=16;
+                    dailyHours=hoursMatch?parseFloat(hoursMatch[1]):6.5;
+                    rewardAmount=rewardMatch?parseInt(rewardMatch[1]):parseInt(nums[nums.length-1]);
+                }
+
+                if([validDays,totalOrders,dailyHours,rewardAmount].some(v=>isNaN(v)||v<=0)){
+                    resultEl.textContent=`第${i+1}期数值无效，请检查`;resultEl.className='file-info error';return;
+                }
+                phases.push({validDays,totalOrders:totalOrders||700,dailyOrders:dailyOrders||16,dailyHours,reward:rewardAmount});
+            }
+            newPolicy.phases=phases;
+        }
+
+        // Add to policies
+        POLICIES[code]=newPolicy;
+        if(!CITY_POLICIES[city]) CITY_POLICIES[city]=[];
+        if(!CITY_POLICIES[city].includes(code)) CITY_POLICIES[city].push(code);
+
+        // Save to localStorage for persistence
+        savePolicies();
+
+        resultEl.textContent=`政策"${name}"添加成功！已保存，下次打开仍在。`;
+        resultEl.className='file-info success';
+        showSuccess(`政策"${name}"已添加`);
+
+        // Update city selector hint
+        onCityChange();
+
+        // Hide form after 3 seconds
+        setTimeout(()=>{
+            const form=document.getElementById('policyFormSection');
+            if(form) form.remove();
+        },3000);
+    }
+
+    // ============================================================
+    // Phase Parsing & History Index
+    // ============================================================
+    function extractPhaseNumber(note){
+        if(!note) return 0;
+        const str=toString(note);
+        const match=str.match(/第?\s*(\d+|[一二三四五六七八九十]+)\s*期/);
+        if(!match) return 0;
+        const cnNums={'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10};
+        const ns=match[1];
+        if(cnNums[ns]) return cnNums[ns];
+        return parseInt(ns)||0;
     }
 
     /**
-     * Try to identify policy code from note string.
-     * Matches keywords like: 内推, 人资, 兼职转全职, 入职无忧
+     * 从发放备注识别政策（按金额判断）。
+     * "3000分二个月发" / "3000分三个月发" → 兼职转全职3000（3期，每期1000）
+     * "1300分两个月发" → 人资1300（2期，700+600）
+     * "2000分两个月发" → 内推2000（一次性2000）
      */
-    function identifyPolicyFromNote(note) {
-        if (!note) return null;
-        const str = toString(note).toLowerCase();
-        if (str.includes('内推') && str.includes('5月')) return 'may_neitui_2000';
-        if (str.includes('内推') && str.includes('6月')) return 'june_neitui_2000';
-        if (str.includes('内推')) return 'may_neitui_2000'; // default to may
-        if (str.includes('人资') && str.includes('5月')) return 'may_hr_1300';
-        if (str.includes('人资') && str.includes('6月')) return 'june_hr_1300';
-        if (str.includes('人资')) return 'may_hr_1300';
-        if (str.includes('兼职') || str.includes('转全职')) return 'april_parttime_3000';
-        if (str.includes('入职无忧') || str.includes('青岛')) return 'qingdao';
+    function identifyPolicyFromPaymentNote(note){
+        if(!note) return null;
+        const s=toString(note);
+        // 按金额识别政策
+        if(s.includes('3000')) return 'april_parttime_3000';
+        if(s.includes('1300')) return 'may_hr_1300';
+        if(s.includes('2000')) return 'may_neitui_2000';
+        // 兼容从奖励备注说明识别
+        if(s.includes('内推')) return 'may_neitui_2000';
+        if(s.includes('中介')||s.includes('人资')) return 'may_hr_1300';
         return null;
     }
 
     /**
-     * Build history index: referrerId -> array of payment records.
-     * Each record: { policyCode, phaseNum, note, rewardAmount }
+     * 从发放备注提取金额和期数（如"2500二期"→{amount:2500,phases:2}）
      */
-    function buildHistoryIndex(data) {
-        if (!data || data.length < 2) return {};
+    function parsePaymentNote(note){
+        if(!note) return {amount:0,phaseCount:0};
+        const s=toString(note);
+        // 提取金额
+        const amountMatch=s.match(/(\d{3,4})\s*(?:元|块)/)||s.match(/^(\d{3,4})/);
+        const amount=amountMatch?parseInt(amountMatch[1]):0;
+        // 提取期数：支持"二期"/"2期"/"第2期"/"分2个"/"两个月"/"分两期"
+        let phaseCount=0;
+        const cnMap={'一':1,'二':2,'两':2,'三':3,'四':4,'五':5,'六':6};
+        // 先试中文数字+期
+        const cnPhaseMatch=s.match(/([一二两三四五六])\s*期/);
+        if(cnPhaseMatch){phaseCount=cnMap[cnPhaseMatch[1]]||0;}
+        // 再试阿拉伯数字+期
+        if(!phaseCount){const numPhaseMatch=s.match(/(\d+)\s*期/);if(numPhaseMatch)phaseCount=parseInt(numPhaseMatch[1]);}
+        // 再试"分X个"/"分X个月"
+        if(!phaseCount){
+            const splitMatch=s.match(/分\s*([一二两三四五六\d])\s*个/);
+            if(splitMatch){const v=splitMatch[1];phaseCount=cnMap[v]||parseInt(v)||0;}
+        }
+        // 再试"X个月"
+        if(!phaseCount){
+            const monthMatch=s.match(/([一二两三四五六\d])\s*个月/);
+            if(monthMatch){const v=monthMatch[1];phaseCount=cnMap[v]||parseInt(v)||0;}
+        }
+        return {amount,phaseCount};
+    }
 
-        const headers = data[0].map(h => toString(h).toLowerCase());
-        // Find key columns in history file
-        const referrerIdCol = findColumnIndex(headers, [
-            '入职骑手id', '骑手id', '介绍人id', '收款骑手id',
-            '推荐人id', 'referrer', 'id'
-        ]);
-        const noteCol = findColumnIndex(headers, [
-            '奖励备注说明', '奖励备注', '备注说明', '备注',
-            '发放备注', '备注信息'
-        ]);
-        const rewardCol = findColumnIndex(headers, [
-            '奖励金额', '金额', 'reward', '发放金额'
-        ]);
+    /**
+     * 动态创建政策（当发放备注的金额不在内置政策中时）
+     */
+    function getOrCreateDynamicPolicy(amount, phaseCount, city, rewardNote){
+        if(!amount||amount<=0) return POLICIES['default'];
+        const code='dynamic_'+amount+'_'+phaseCount;
+        if(POLICIES[code]) return POLICIES[code];
 
-        if (referrerIdCol < 0) {
-            console.warn('[历史] 未找到介绍人ID列，可用列:', headers.join(' | '));
-            return {};
+        const policyName=`${CITY_NAMES[city]||city}-${amount}元(${phaseCount}期)`;
+        const newPolicy={name:policyName,code,city:city||'weifang',year:2026,months:[],referrerType:'all',stations:[],rewardAmount:amount,fullDayHoursCol:'online_hours',peakHoursCol:'online_hours',hasPeaks:false};
+
+        if(phaseCount<=1){
+            newPolicy.type='single';
+            newPolicy.validDaysRequired=26;
+            newPolicy.totalDaysRequired=30;
+            newPolicy.minDailyOrders=16;
+            newPolicy.minOnlineHours=8;
+        }else{
+            newPolicy.type='multi_phase';
+            newPolicy.phases=[];
+            // 智能提取每期金额：从奖励备注说明中提取"第一期1500元；第二期1000元"格式
+            const phaseRewards=[];
+            if(rewardNote){
+                // 方法1：匹配"第一期1500元"、"第二期1000元"格式
+                const cnNums=['一','二','三','四','五','六'];
+                for(let i=0;i<phaseCount;i++){
+                    const pat=new RegExp('第'+cnNums[i]+'期.*?(\\d{3,4})\\s*元');
+                    const m=rewardNote.match(pat);
+                    if(m) phaseRewards.push(parseInt(m[1]));
+                }
+                // 方法2：如果上面没匹配到，尝试匹配"1500元；...1000元"（按顺序提取）
+                if(phaseRewards.length<phaseCount){
+                    const allAmounts=[...rewardNote.matchAll(/(\d{3,4})\s*元/g)].map(m=>parseInt(m[1]));
+                    // 过滤掉总金额（如果有的话）
+                    const filtered=allAmounts.filter(v=>v!==amount);
+                    for(let i=0;i<phaseCount;i++){
+                        if(!phaseRewards[i]) phaseRewards.push(filtered[i]||0);
+                    }
+                }
+            }
+            for(let i=0;i<phaseCount;i++){
+                const phaseReward=phaseRewards[i]||(i===0?Math.ceil(amount*0.6):Math.floor(amount*0.4));
+                newPolicy.phases.push({
+                    validDays:26,
+                    totalOrders:i===0?700:900,
+                    dailyOrders:16,
+                    dailyHours:6.5,
+                    reward:phaseReward
+                });
+            }
         }
 
-        console.log('[历史] 列映射 - 介绍人ID列:', referrerIdCol, '备注列:', noteCol, '金额列:', rewardCol);
+        POLICIES[code]=newPolicy;
+        if(!CITY_POLICIES[city]) CITY_POLICIES[city]=[];
+        if(!CITY_POLICIES[city].includes(code)) CITY_POLICIES[city].push(code);
+        savePolicies();
+        console.log('[动态政策] 创建:', policyName, '各期:', newPolicy.phases.map(p=>p.reward));
+        return newPolicy;
+    }
 
-        const index = {};
+    function identifyPolicyFromNote(note){
+        if(!note) return null;
+        const s=toString(note).toLowerCase();
+        if(s.includes('内推')&&s.includes('5月')) return 'may_neitui_2000';
+        if(s.includes('内推')&&s.includes('6月')) return 'june_neitui_2000';
+        if(s.includes('内推')) return 'may_neitui_2000';
+        if(s.includes('人资')&&s.includes('5月')) return 'may_hr_1300';
+        if(s.includes('人资')&&s.includes('6月')) return 'june_hr_1300';
+        if(s.includes('人资')) return 'may_hr_1300';
+        if(s.includes('兼职')||s.includes('转全职')) return 'april_parttime_3000';
+        if(s.includes('入职无忧')||s.includes('青岛')) return 'qingdao';
+        return null;
+    }
 
-        for (let i = 1; i < data.length; i++) {
-            const row = data[i];
-            const referrerId = toString(row[referrerIdCol]);
-            if (!referrerId) continue;
+    function parseRewardNote(note){
+        if(!note) return {policyCode:null,month:'',phaseNum:0,type:'',fullNote:''};
+        const s=toString(note);
+        const phaseNum=extractPhaseNumber(s);
+        const policyCode=identifyPolicyFromNote(s);
+        const monthMatch=s.match(/(\d+)月/);
+        const month=monthMatch?monthMatch[1]+'月':'';
+        let type='';
+        if(s.includes('内推')) type='内推';
+        else if(s.includes('中介')) type='中介';
+        else if(s.includes('人资')) type='人资';
+        return {policyCode,month,phaseNum,type,fullNote:s};
+    }
 
-            const note = noteCol >= 0 ? toString(row[noteCol]) : '';
-            const rewardAmount = rewardCol >= 0 ? toNumber(row[rewardCol]) : 0;
-            const phaseNum = extractPhaseNumber(note);
-            const policyCode = identifyPolicyFromNote(note);
+    function findColumnIndex(headers, keywords){
+        for(let i=0;i<headers.length;i++){for(const kw of keywords){if(headers[i].includes(kw)) return i;}}
+        return -1;
+    }
 
-            if (!index[referrerId]) index[referrerId] = [];
-            index[referrerId].push({
-                policyCode,
-                phaseNum,
-                note,
-                rewardAmount,
-                rowIndex: i
-            });
+    function buildHistoryIndex(data){
+        if(!data||data.length<2) return {};
+        const headers=data[0].map(h=>toString(h).toLowerCase());
+        const referrerIdCol=findColumnIndex(headers,['入职骑手id','骑手id','介绍人id','收款骑手id','推荐人id','收款人id','referrer']);
+        const noteCol=findColumnIndex(headers,['奖励备注说明','奖励备注','备注说明']);
+        const paymentNoteCol=findColumnIndex(headers,['发放备注','payment_note']);
+        const otherNoteCol=findColumnIndex(headers,['其它备注','其他备注','备注','其它']);
+        const rewardCol=findColumnIndex(headers,['奖励金额','金额','reward','发放金额']);
+        if(referrerIdCol<0){console.warn('[历史] 未找到介绍人ID列');return {};}
+        console.log('[历史] 列映射 - ID列:',referrerIdCol,'奖励备注:',noteCol,'发放备注:',paymentNoteCol,'其它备注:',otherNoteCol,'金额:',rewardCol);
+        const index={};
+        for(let i=1;i<data.length;i++){
+            const row=data[i];
+            const refId=toString(row[referrerIdCol]);
+            if(!refId) continue;
+            const note=noteCol>=0?toString(row[noteCol]):'';
+            const paymentNote=paymentNoteCol>=0?toString(row[paymentNoteCol]):'';
+            const otherNote=otherNoteCol>=0?toString(row[otherNoteCol]):'';
+            const reward=rewardCol>=0?toNumber(row[rewardCol]):0;
+            const phaseNum=extractPhaseNumber(note);
+            let policyCode=identifyPolicyFromPaymentNote(paymentNote)||identifyPolicyFromNote(note);
+            if(!index[refId]) index[refId]=[];
+            index[refId].push({policyCode,phaseNum,note,paymentNote,otherNote,reward,rowIndex:i});
         }
-
         return index;
     }
 
-    /**
-     * Get history summary for a referrer.
-     * Returns: { maxPhase, phasesPaid: [1,2,...], policyCode, phaseCounts: {1: count, 2: count}, warnings: [] }
-     */
-    function getHistorySummary(referrerId) {
-        const records = historyIndex[referrerId];
-        if (!records || records.length === 0) {
-            return { maxPhase: 0, phasesPaid: [], policyCode: null, phaseCounts: {}, warnings: [] };
+    function getHistorySummary(referrerId){
+        const records=historyIndex[referrerId];
+        if(!records||records.length===0) return {maxPhase:0,phasesPaid:[],policyCode:null,phaseCounts:{},warnings:[],paymentNote:'',otherNote:''};
+        const phaseCounts={},phasesPaid=new Set();
+        let maxPhase=0,policyCode=null,lastPaymentNote='',lastOtherNote='';
+        const warnings=[];
+        for(const rec of records){
+            if(rec.phaseNum>0){phasesPaid.add(rec.phaseNum);if(rec.phaseNum>maxPhase){maxPhase=rec.phaseNum;lastPaymentNote=rec.paymentNote||'';lastOtherNote=rec.otherNote||'';}phaseCounts[rec.phaseNum]=(phaseCounts[rec.phaseNum]||0)+1;}
+            if(rec.policyCode) policyCode=rec.policyCode;
         }
-
-        const phaseCounts = {};
-        const phasesPaid = new Set();
-        let maxPhase = 0;
-        let policyCode = null;
-        const warnings = [];
-
-        for (const rec of records) {
-            if (rec.phaseNum > 0) {
-                phasesPaid.add(rec.phaseNum);
-                if (rec.phaseNum > maxPhase) maxPhase = rec.phaseNum;
-                phaseCounts[rec.phaseNum] = (phaseCounts[rec.phaseNum] || 0) + 1;
-            }
-            if (rec.policyCode) policyCode = rec.policyCode;
-        }
-
-        // Check for duplicate phases (same phase paid multiple times)
-        for (const [phase, count] of Object.entries(phaseCounts)) {
-            if (count > 1) {
-                warnings.push(`第${phase}期重复发放${count}次`);
-            }
-        }
-
-        return {
-            maxPhase,
-            phasesPaid: Array.from(phasesPaid).sort((a, b) => a - b),
-            policyCode,
-            phaseCounts,
-            warnings
-        };
+        for(const[phase,count]of Object.entries(phaseCounts)){if(count>1)warnings.push(`第${phase}期重复发放${count}次`);}
+        return {maxPhase,phasesPaid:Array.from(phasesPaid).sort((a,b)=>a-b),policyCode,phaseCounts,warnings,paymentNote:lastPaymentNote,otherNote:lastOtherNote};
     }
 
-    /**
-     * Determine next phase to verify based on history and policy.
-     * Returns: { nextPhase, totalPhases, isDuplicate, isExceeded, warnings: [] }
-     */
-    function determineNextPhase(policy, referrerId) {
-        const totalPhases = policy.phases ? policy.phases.length : 1;
-        const history = getHistorySummary(referrerId);
-        const warnings = [...history.warnings];
-
-        let nextPhase;
-        let isDuplicate = false;
-        let isExceeded = false;
-
-        if (policy.type === 'multi_phase') {
-            if (history.maxPhase === 0) {
-                // No history - start from phase 1
-                nextPhase = 1;
-            } else if (history.maxPhase >= totalPhases) {
-                // All phases already paid - this is a duplicate
-                isDuplicate = true;
-                nextPhase = history.maxPhase;
-                warnings.push(`该政策共${totalPhases}期，历史已发到第${history.maxPhase}期，属于重复核实`);
-            } else {
-                // Next phase
-                nextPhase = history.maxPhase + 1;
-            }
-        } else {
-            // Single phase policy
-            if (history.maxPhase >= 1) {
-                isDuplicate = true;
-                nextPhase = 1;
-                warnings.push('该政策为一次性发放，历史已有发放记录，属于重复核实');
-            } else {
-                nextPhase = 1;
-            }
+    function determineNextPhase(policy, referrerId){
+        const totalPhases=policy.phases?policy.phases.length:1;
+        const history=getHistorySummary(referrerId);
+        const warnings=[...history.warnings];
+        let nextPhase,isDuplicate=false;
+        if(policy.type==='multi_phase'){
+            if(history.maxPhase===0){nextPhase=1;}
+            else if(history.maxPhase>=totalPhases){isDuplicate=true;nextPhase=history.maxPhase;warnings.push(`该政策共${totalPhases}期，历史已发到第${history.maxPhase}期，属于重复核实`);}
+            else{nextPhase=history.maxPhase+1;}
+        }else{
+            if(history.maxPhase>=1){isDuplicate=true;nextPhase=1;warnings.push('该政策为一次性发放，历史已有发放记录，属于重复核实');}
+            else{nextPhase=1;}
         }
-
-        return {
-            nextPhase,
-            totalPhases,
-            historyMaxPhase: history.maxPhase,
-            phasesPaid: history.phasesPaid,
-            isDuplicate,
-            isExceeded,
-            warnings,
-            policyCode: history.policyCode
-        };
+        return {nextPhase,totalPhases,historyMaxPhase:history.maxPhase,phasesPaid:history.phasesPaid,isDuplicate,warnings,policyCode:history.policyCode};
     }
 
     // ============================================================
-    // Column Mapping Getters
+    // Parse Reward Note (奖励备注说明)
     // ============================================================
-    function getColMap() {
-        return {
-            riderId: parseInt(document.getElementById('colRiderId').value),
-            name: parseInt(document.getElementById('colName').value),
-            date: parseInt(document.getElementById('colDate').value),
-            period: parseInt(document.getElementById('colPeriod').value),
-            orders: parseInt(document.getElementById('colOrders').value),
-            fullDayHours: parseInt(document.getElementById('colFullDayHours').value),
-            peakHours: parseInt(document.getElementById('colPeakHours').value)
-        };
+    function parseRewardNote(note){
+        if(!note) return {policyCode:null,month:'',phaseNum:0,type:'',fullNote:''};
+        const s=toString(note);
+        const phaseNum=extractPhaseNumber(s);
+        const policyCode=identifyPolicyFromNote(s);
+
+        // Extract month (3月, 4月, 5月, 6月)
+        const monthMatch=s.match(/(\d+)月/);
+        const month=monthMatch?monthMatch[1]+'月':'';
+
+        // Determine type (内推/中介/人资)
+        let type='';
+        if(s.includes('内推')) type='内推';
+        else if(s.includes('中介')) type='中介';
+        else if(s.includes('人资')) type='人资';
+
+        return {policyCode,month,phaseNum,type,fullNote:s};
     }
 
-    function validateColumnMap() {
-        const map = getColMap();
-        if (isNaN(map.riderId)) return '请选择骑手ID列';
-        if (isNaN(map.period)) return '请选择时段列';
-        if (isNaN(map.orders)) return '请选择完单量列';
-        if (isNaN(map.fullDayHours)) return '请选择全天时长列';
-        if (isNaN(map.peakHours)) return '请选择分时段时长列';
+    // ============================================================
+    // Column Mapping
+    // ============================================================
+    function getColMap(){
+        return {
+            riderId:parseInt(document.getElementById('colRiderId').value),
+            name:parseInt(document.getElementById('colName').value),
+            date:parseInt(document.getElementById('colDate').value),
+            period:parseInt(document.getElementById('colPeriod').value),
+            orders:parseInt(document.getElementById('colOrders').value),
+            fullDayHours:parseInt(document.getElementById('colFullDayHours').value),
+            peakHours:parseInt(document.getElementById('colPeakHours').value)
+        };
+    }
+    function validateColumnMap(){
+        const m=getColMap();
+        if(isNaN(m.riderId)) return '请选择骑手ID列';
+        if(isNaN(m.period)) return '请选择时段列';
+        if(isNaN(m.orders)) return '请选择完单量列';
+        if(isNaN(m.fullDayHours)) return '请选择全天时长列';
+        if(isNaN(m.peakHours)) return '请选择分时段时长列';
         return null;
     }
 
     // ============================================================
-    // Verification Logic (matches VBScript exactly)
+    // Verification Logic
     // ============================================================
-
-    /**
-     * Convert Excel time value to hours.
-     * Excel stores time as fraction of day, so multiply by 24.
-     * Also handles string format "HH:MM:SS"
-     */
-    function toHours(val) {
-        if (val === null || val === undefined || val === '') return 0;
-        if (typeof val === 'number') {
-            // Excel time fraction
-            return val * 24;
-        }
-        if (typeof val === 'string') {
-            // Try parsing "HH:MM:SS" or "H:MM"
-            const parts = val.split(':');
-            if (parts.length >= 2) {
-                const h = parseFloat(parts[0]) || 0;
-                const m = parseFloat(parts[1]) || 0;
-                const s = parts.length > 2 ? (parseFloat(parts[2]) || 0) : 0;
-                return h + m / 60 + s / 3600;
-            }
-            const num = parseFloat(val);
-            if (!isNaN(num)) return num * 24;
-        }
-        return 0;
+    function getHoursForRow(row,colMap,period){
+        if(isFullDay(period)) return toHours(row[colMap.fullDayHours]);
+        return toHours(row[colMap.peakHours]);
     }
 
     /**
-     * Get numeric value from cell (handles strings that look like numbers)
+     * 按天汇总核实：所有政策逻辑一样，只是阈值不同。
+     * 一天要同时满足所有条件才算有效出勤1天：
+     * A. 全天在线≥Xh + 午高峰≥Yh + 晚高峰≥Zh
+     * B. 午高峰≥M单 + 晚高峰≥N单 + 日总单≥K单
      */
-    function toNumber(val) {
-        if (val === null || val === undefined || val === '') return 0;
-        if (typeof val === 'number') return val;
-        // Remove commas and spaces
-        const cleaned = String(val).replace(/[,，\s]/g, '');
-        const num = parseFloat(cleaned);
-        return isNaN(num) ? 0 : num;
-    }
+    function verifyRider(riderId,policy,attendanceRows,colMap){
+        // 第一步：按日期分组汇总
+        const dayMap={}; // date -> {fullHours, lunchHours, dinnerHours, lunchOrders, dinnerOrders, totalOrders, totalHours}
+        let totalDays=0, totalOrders=0;
 
-    /**
-     * Get string value from cell
-     */
-    function toString(val) {
-        if (val === null || val === undefined) return '';
-        return String(val).trim();
-    }
-
-    /**
-     * Check if period is "全天" (full day)
-     */
-    function isFullDay(period) {
-        return toString(period) === '全天';
-    }
-
-    /**
-     * Check if period is "午高峰" (lunch peak)
-     */
-    function isLunchPeak(period) {
-        return toString(period) === '午高峰';
-    }
-
-    /**
-     * Check if period is "晚高峰" (dinner peak)
-     */
-    function isDinnerPeak(period) {
-        return toString(period) === '晚高峰';
-    }
-
-    /**
-     * Get hours for a row based on period type.
-     * Full day -> fullDayHours column (col15 for qingdao, col14 for others)
-     * Peak periods -> peakHours column (col14)
-     */
-    function getHoursForRow(row, colMap, period) {
-        if (isFullDay(period)) {
-            return toHours(row[colMap.fullDayHours]);
-        } else {
-            // Lunch peak, dinner peak, or other -> use peak hours column
-            return toHours(row[colMap.peakHours]);
-        }
-    }
-
-    /**
-     * Check if a single day is valid for a single-phase policy.
-     * Matches CheckValidDaySingle in VBScript.
-     */
-    function checkValidDaySingle(policy, hours, orders, period) {
-        // Check minimum daily hours (for full day rows)
-        if (isFullDay(period)) {
-            if (hours < policy.minOnlineHours) return false;
-            if (policy.minDailyOrders && orders < policy.minDailyOrders) return false;
-        }
-
-        // Check lunch peak
-        if (isLunchPeak(period)) {
-            if (policy.lunchMinHours && hours < policy.lunchMinHours) return false;
-            if (policy.lunchMinOrders && orders < policy.lunchMinOrders) return false;
-        }
-
-        // Check dinner peak
-        if (isDinnerPeak(period)) {
-            if (policy.dinnerMinHours && hours < policy.dinnerMinHours) return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Check if a single day is valid for a multi-phase policy.
-     * Matches CheckValidDayMulti in VBScript (using phase 1 requirements).
-     */
-    function checkValidDayMulti(policy, hours, orders, period) {
-        const phase = policy.phases[0]; // Use phase 1 requirements
-        const minHours = phase.dailyHours;
-        const minDailyOrders = phase.dailyOrders;
-
-        if (isFullDay(period)) {
-            if (hours < minHours) return false;
-            if (orders < minDailyOrders) return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Verify a single rider against a policy.
-     * Returns { totalDays, validDays, totalOrders, phaseInfo, passed, reward }
-     */
-    function verifyRider(riderId, policy, attendanceRows, colMap) {
-        let totalDays = 0;
-        let validDays = 0;
-        let totalOrders = 0;
-
-        for (const row of attendanceRows) {
-            const rowRiderId = toString(row[colMap.riderId]);
-            if (rowRiderId !== riderId) continue;
-
+        for(const row of attendanceRows){
+            const rowRiderId=toString(row[colMap.riderId]);
+            if(rowRiderId!==riderId) continue;
             totalDays++;
+            const period=row[colMap.period];
+            const orders=toNumber(row[colMap.orders]);
+            const hours=getHoursForRow(row,colMap,period);
+            totalOrders+=orders;
 
-            const period = row[colMap.period];
-            const orders = toNumber(row[colMap.orders]);
-            totalOrders += orders;
+            // 用日期作为key，归一化为YYYY/MM/DD格式
+            const dateVal=row[colMap.date];
+            const dateKey=formatDate(dateVal)||toString(dateVal);
+            if(!dayMap[dateKey]) dayMap[dateKey]={fullHours:0,lunchHours:0,dinnerHours:0,lunchOrders:0,dinnerOrders:0,totalOrders:0,totalHours:0};
+            const d=dayMap[dateKey];
 
-            const hours = getHoursForRow(row, colMap, period);
-
-            let isValidDay;
-            if (policy.type === 'multi_phase') {
-                isValidDay = checkValidDayMulti(policy, hours, orders, period);
-            } else {
-                isValidDay = checkValidDaySingle(policy, hours, orders, period);
+            if(isFullDay(period)){
+                d.fullHours+=hours;
+                d.totalHours+=hours;
+            }else if(isLunchPeak(period)){
+                d.lunchHours+=hours;
+                d.lunchOrders+=orders;
+                d.totalHours+=hours;
+            }else if(isDinnerPeak(period)){
+                d.dinnerHours+=hours;
+                d.dinnerOrders+=orders;
+                d.totalHours+=hours;
             }
+            d.totalOrders+=orders;
+        }
 
-            if (isValidDay) {
+        // 调试：打印前3条记录的时段值
+        let debugCount=0;
+        for(const row of attendanceRows){
+            const rowRiderId=toString(row[colMap.riderId]);
+            if(rowRiderId!==riderId) continue;
+            const p=toString(row[colMap.period]);
+            if(debugCount<3){console.log('[核实-debug] 骑手'+riderId+'时段值:"'+p+'" 字节:',[...p].map(c=>c.charCodeAt(0)));debugCount++;}
+            break;
+        }
+        // 统计时段分布
+        const periodStats={};
+        for(const row of attendanceRows){
+            if(toString(row[colMap.riderId])!==riderId) continue;
+            const p=toString(row[colMap.period]);
+            periodStats[p]=(periodStats[p]||0)+1;
+        }
+        if(Object.keys(periodStats).length>0) console.log('[核实-debug] 骑手'+riderId+'时段分布:',periodStats);
+        let validDays=0, validOrders=0;
+
+        // 获取政策阈值
+        let minFullHours, minLunchHours, minDinnerHours, minLunchOrders, minDinnerOrders, minDailyOrders;
+        if(policy.type==='multi_phase'){
+            const phase=policy.phases[0]; // 用第一期阈值
+            minFullHours=phase.dailyHours;
+            minLunchHours=2.5;
+            minDinnerHours=2;
+            minLunchOrders=5;
+            minDinnerOrders=4;
+            minDailyOrders=phase.dailyOrders;
+        }else{
+            minFullHours=policy.minOnlineHours||8;
+            minLunchHours=policy.lunchMinHours||2.5;
+            minDinnerHours=policy.dinnerMinHours||2;
+            minLunchOrders=policy.lunchMinOrders||5;
+            minDinnerOrders=4;
+            minDailyOrders=policy.minDailyOrders||20;
+        }
+
+        for(const[dateKey,d]of Object.entries(dayMap)){
+            // 所有条件同时满足才算有效出勤1天
+            const fullOk=d.fullHours>=minFullHours;
+            const lunchOk=d.lunchHours>=minLunchHours&&d.lunchOrders>=minLunchOrders;
+            const dinnerOk=d.dinnerHours>=minDinnerHours&&d.dinnerOrders>=minDinnerOrders;
+            const ordersOk=d.totalOrders>=minDailyOrders;
+
+            if(fullOk&&lunchOk&&dinnerOk&&ordersOk){
                 validDays++;
+                validOrders+=d.totalOrders; // 达标那天的全部单量（全天+午高峰+晚高峰）
             }
         }
 
-        // Determine pass/fail and build phase info
-        let passed = false;
-        let phaseInfo = '';
-        let reward = 0;
-
-        if (policy.type === 'multi_phase') {
-            // Check each phase INDEPENDENTLY - pass any phase = passed
-            // Reward = sum of all passed phases' rewards
-            const phaseResults = [];
-            let passedPhases = 0;
-
-            for (let pi = 0; pi < policy.phases.length; pi++) {
-                const phase = policy.phases[pi];
-                const phasePassed = validDays >= phase.validDays && totalOrders >= phase.totalOrders;
-                phaseResults.push({
-                    phase: pi + 1,
-                    validDays: validDays,
-                    requiredDays: phase.validDays,
-                    totalOrders: totalOrders,
-                    requiredOrders: phase.totalOrders,
-                    passed: phasePassed,
-                    reward: phase.reward
-                });
-                if (phasePassed) {
-                    passedPhases++;
-                    reward += phase.reward;
-                }
+        let passed=false,phaseInfo='',reward=0;
+        if(policy.type==='multi_phase'){
+            const phaseResults=[];
+            let passedPhases=0;
+            for(let pi=0;pi<policy.phases.length;pi++){
+                const phase=policy.phases[pi];
+                const phasePassed=validDays>=phase.validDays&&totalOrders>=phase.totalOrders;
+                phaseResults.push({phase:pi+1,validDays,requiredDays:phase.validDays,totalOrders,requiredOrders:phase.totalOrders,passed:phasePassed,reward:phase.reward});
+                if(phasePassed){passedPhases++;reward+=phase.reward;}
             }
-
-            // Passed if at least one phase is met
-            passed = passedPhases > 0;
-            phaseInfo = phaseResults.map(pr =>
-                `阶段${pr.phase}: ${pr.validDays}/${pr.requiredDays}天, ${pr.totalOrders}/${pr.requiredOrders}单 ${pr.passed ? '✓' : '✗'}`
-            ).join('; ');
-        } else {
-            // Single phase policy
-            passed = validDays >= policy.validDaysRequired;
-            if (policy.totalOrdersRequired && policy.totalOrdersRequired > 0) {
-                passed = passed && (totalOrders >= policy.totalOrdersRequired);
-            }
-
-            phaseInfo = `有效天数: ${validDays}/${policy.validDaysRequired}`;
-            if (policy.totalOrdersRequired) {
-                phaseInfo += `, 总单量: ${totalOrders}/${policy.totalOrdersRequired}`;
-            }
-
-            if (passed) {
-                reward = policy.rewardAmount || 0;
-            }
+            passed=passedPhases>0;
+            phaseInfo=phaseResults.map(pr=>`阶段${pr.phase}:${pr.validDays}/${pr.requiredDays}天,${pr.totalOrders}/${pr.requiredOrders}单${pr.passed?'✓':'✗'}`).join('; ');
+        }else{
+            passed=validDays>=policy.validDaysRequired;
+            if(policy.totalOrdersRequired&&policy.totalOrdersRequired>0) passed=passed&&(totalOrders>=policy.totalOrdersRequired);
+            phaseInfo=`有效天数:${validDays}/${policy.validDaysRequired}`;
+            if(policy.totalOrdersRequired) phaseInfo+=`,总单量:${totalOrders}/${policy.totalOrdersRequired}`;
+            if(passed) reward=policy.rewardAmount||0;
         }
-
-        return {
-            riderId,
-            totalDays,
-            validDays,
-            totalOrders,
-            phaseInfo,
-            passed,
-            reward,
-            policyName: policy.name
-        };
+        return {riderId,totalDays,validDays,totalOrders,validOrders,phaseInfo,passed,reward,policyName:policy.name,policy};
     }
 
     // ============================================================
     // Main Verification
     // ============================================================
-    async function startVerification() {
-        // Validate attendance data
-        if (!attendanceData || attendanceData.length < 2) {
-            showError('请先上传考勤文件');
-            return;
-        }
+    async function startVerification(){
+        if(!attendanceData||attendanceData.length<2){showError('请先上传考勤文件');return;}
+        if(!riderListData||riderListData.length<2){showError('请上传骑手名单文件');return;}
+        const colMapErr=validateColumnMap();
+        if(colMapErr){showError(colMapErr);return;}
+        const colMap=getColMap();
 
-        // Validate column mapping
-        const colMapErr = validateColumnMap();
-        if (colMapErr) {
-            showError(colMapErr);
-            return;
-        }
+        // Find columns in rider list
+        const rlHeaders=riderListData[0].map(h=>toString(h).toLowerCase());
+        const rlRiderIdCol=findColumnIndex(rlHeaders,['骑手id','骑手编号','入职骑手id','id']);
+        const rlNameCol=findColumnIndex(rlHeaders,['姓名','骑手姓名','入职骑手姓名','name']);
+        const rlNoteCol=findColumnIndex(rlHeaders,['奖励备注说明','奖励备注','备注说明','备注']);
+        const rlIssueDateCol=findColumnIndex(rlHeaders,['入职日期','日期','issue_date','date']);
+        const rlPaymentNoteCol=findColumnIndex(rlHeaders,['发放备注','payment_note','备注']);
+        const rlReferrerIdCol=findColumnIndex(rlHeaders,['收款人id','介绍人id','推荐人id','referrer']);
+        // 站点和推荐人列 - 用于自动匹配政策
+        const rlStationCol=findColumnIndex(rlHeaders,['站点','站点名称','station','入职站点','团队']);
+        const rlReferrerTypeCol=findColumnIndex(rlHeaders,['推荐人','推荐人类型','referrer_type','内推/中介','类型']);
 
-        const colMap = getColMap();
+        if(rlRiderIdCol<0){showError('骑手名单中未找到骑手ID列。可用列: '+riderListData[0].map(h=>toString(h)).join('、'));return;}
 
-        // Get rider list
-        let riders = [];
-        const mode = document.getElementById('verifyMode').value;
+        console.log('[核实] 骑手名单列映射 - ID:',rlRiderIdCol,'姓名:',rlNameCol,'入职日期:',rlIssueDateCol,'站点:',rlStationCol,'推荐人:',rlReferrerTypeCol,'发放备注:',rlPaymentNoteCol);
 
-        if (mode === 'single') {
-            // Single policy mode: need rider IDs
-            if (!riderListData || riderListData.length < 2) {
-                showError('请上传骑手名单文件');
-                return;
-            }
-            const policyCode = document.getElementById('singlePolicy').value;
-            const policy = POLICIES[policyCode];
-            if (!policy) {
-                showError('未找到政策: ' + policyCode);
-                return;
-            }
-
-            // Find rider ID column in rider list (first column by default)
-            const riderCol = 0;
-            const nameCol = findColumnByName(riderListData[0], ['姓名', 'name', '骑手姓名']);
-
-            for (let i = 1; i < riderListData.length; i++) {
-                const riderId = toString(riderListData[i][riderCol]);
-                if (!riderId) continue;
-                const name = nameCol >= 0 ? toString(riderListData[i][nameCol]) : '';
-                riders.push({ riderId, name, policy });
-            }
-        } else {
-            // Mixed mode: rider list with policy codes
-            if (!riderListData || riderListData.length < 2) {
-                showError('请上传骑手名单文件');
-                return;
-            }
-
-            const rawHeaders = riderListData[0].map(h => toString(h));
-            const headers = rawHeaders.map(h => h.toLowerCase());
-
-            // Extended keyword matching for rider ID column
-            const riderCol = findColumnIndex(headers, [
-                '骑手id', '骑手编号', 'rider_id', '入职骑手id',
-                '骑手', 'id', '编号'
-            ]);
-            const policyCol = findColumnIndex(headers, [
-                '政策', 'policy', '政策代码', 'policy_code',
-                '政策类型', '奖励政策'
-            ]);
-            const nameCol = findColumnIndex(headers, [
-                '姓名', 'name', '骑手姓名', 'rider_name',
-                '入职骑手姓名', '骑手名字'
-            ]);
-
-            if (riderCol < 0) {
-                // Show available columns to help user debug
-                showError('骑手名单中未找到骑手ID列。可用列: ' + rawHeaders.join('、'));
-                return;
-            }
-
-            // Determine which policy to use
-            let usePolicy;
-            if (policyCol >= 0) {
-                // Has policy column - use per-row policy
-                usePolicy = null; // Will be set per row
-                console.log('[核实] 骑手名单包含政策列(列' + policyCol + ': ' + rawHeaders[policyCol] + ')，将逐行匹配政策');
-            } else {
-                // No policy column - use the single policy selector
-                const singlePolicyCode = document.getElementById('singlePolicy').value;
-                usePolicy = POLICIES[singlePolicyCode] || POLICIES['default'];
-                if (!usePolicy) {
-                    showError('政策配置异常，请刷新页面重试');
-                    return;
-                }
-                console.log('[核实] 骑手名单无政策列，使用统一政策: ' + usePolicy.name);
-            }
-
-            console.log('[核实] 骑手名单列: ' + rawHeaders.join(' | '));
-            console.log('[核实] 检测到 - 骑手ID列: ' + riderCol + '(' + rawHeaders[riderCol] + '), 政策列: ' + policyCol + ', 姓名列: ' + nameCol);
-
-            for (let i = 1; i < riderListData.length; i++) {
-                const riderId = toString(riderListData[i][riderCol]);
-                if (!riderId) continue;
-
-                let policy;
-                if (usePolicy) {
-                    // All riders use the same policy from selector
-                    policy = usePolicy;
-                } else if (policyCol >= 0) {
-                    // Per-row policy from column
-                    const pCode = toString(riderListData[i][policyCol]).toLowerCase().trim();
-                    policy = POLICIES[pCode] || null;
-                    if (!policy) {
-                        // Skip riders with unknown policy, don't crash
-                        console.warn('Row ' + i + ': unknown policy "' + pCode + '", skipping');
-                        continue;
-                    }
-                } else {
-                    // Fallback to default
-                    policy = POLICIES['default'];
-                }
-
-                const name = nameCol >= 0 ? toString(riderListData[i][nameCol]) : '';
-                riders.push({ riderId, name, policy });
-            }
-        }
-
-        if (riders.length === 0) {
-            showError('未找到有效的骑手数据');
-            return;
-        }
-
-        // Show loading
         document.getElementById('loadingOverlay').classList.add('show');
 
-        // Process asynchronously to allow UI update
-        setTimeout(() => {
-            try {
-                const attendanceRows = attendanceData.slice(1); // Skip header
-                verificationResults = [];
+        setTimeout(()=>{
+            try{
+                const attendanceRows=attendanceData.slice(1);
+                verificationResults=[];
 
-                console.log('[核实] 开始核实 ' + riders.length + ' 名骑手，考勤数据 ' + attendanceRows.length + ' 行');
-                console.log('[核实] 列映射: ', colMap);
+                for(let i=1;i<riderListData.length;i++){
+                    const row=riderListData[i];
+                    const riderId=toString(row[rlRiderIdCol]);
+                    if(!riderId) continue;
 
-                for (let ri = 0; ri < riders.length; ri++) {
-                    const rider = riders[ri];
-                    if (!rider.policy) {
-                        console.warn('[核实] 跳过骑手 ' + rider.riderId + ': 政策对象为undefined');
-                        continue;
+                    const name=rlNameCol>=0?toString(row[rlNameCol]):'';
+                    const issueDate=rlIssueDateCol>=0?formatDate(row[rlIssueDateCol]):'';
+                    const paymentNote=rlPaymentNoteCol>=0?toString(row[rlPaymentNoteCol]):'';
+                    const rewardNote=rlNoteCol>=0?toString(row[rlNoteCol]):'';
+                    const station=rlStationCol>=0?toString(row[rlStationCol]):'';
+                    const referrerType=rlReferrerTypeCol>=0?toString(row[rlReferrerTypeCol]):'';
+                    const referrerId=rlReferrerIdCol>=0?toString(row[rlReferrerIdCol]):riderId;
+
+                    // 1. 根据入职日期、站点、推荐人自动匹配政策
+                    let policy=matchPolicyByRider(issueDate,station,referrerType,currentCity);
+                    console.log('[核实] 骑手'+riderId+'('+name+') 入职:'+issueDate+' 站点:'+station+' 推荐人:'+referrerType+' → 匹配政策:'+policy.name);
+
+                    // 2. 从历史发放记录查该收款人已发到第几期
+                    const history=getHistorySummary(referrerId);
+                    const historyMaxPhase=history.maxPhase;
+                    const phasesPaid=history.phasesPaid;
+                    const historyDetail=phasesPaid.length>0?phasesPaid.map(p=>'第'+p+'期').join(','):'无';
+
+                    // 初始化警告数组
+                    const warnings=[];
+                    let isDuplicate=false;
+
+                    // 对比历史发放备注和当前发放备注
+                    if(history.paymentNote&&paymentNote){
+                        const histNote=toString(history.paymentNote);
+                        const currNote=toString(paymentNote);
+                        // 提取金额对比
+                        const histAmount=histNote.match(/(\d{3,4})/);
+                        const currAmount=currNote.match(/(\d{3,4})/);
+                        if(histAmount&&currAmount&&histAmount[1]!==currAmount[1]){
+                            warnings.push(`⚠历史发放"${histNote}"(${histAmount[1]}元)与当前"${currNote}"(${currAmount[1]}元)金额不一致`);
+                        }
+                        // 提取期数对比
+                        const cnMap2={'一':1,'二':2,'两':2,'三':3};
+                        const histPhaseMatch=histNote.match(/([一二两三四五六\d])\s*期/);
+                        const currPhaseMatch=currNote.match(/([一二两三四五六\d])\s*期/);
+                        if(histPhaseMatch&&currPhaseMatch){
+                            const hp=cnMap2[histPhaseMatch[1]]||parseInt(histPhaseMatch[1]);
+                            const cp=cnMap2[currPhaseMatch[1]]||parseInt(currPhaseMatch[1]);
+                            if(hp!==cp) warnings.push(`⚠历史期数(${hp}期)与当前期数(${cp}期)不一致`);
+                        }
+                        // 检查历史"其它备注"列（如"2200/3期"）
+                        if(history.otherNote){
+                            const otherNote=toString(history.otherNote);
+                            const otherAmount=otherNote.match(/(\d{3,4})/);
+                            if(otherAmount&&currAmount&&otherAmount[1]!==currAmount[1]){
+                                warnings.push(`⚠历史其它备注"${otherNote}"与当前"${currNote}"政策不同`);
+                            }
+                        }
                     }
-                    try {
-                        const result = verifyRider(rider.riderId, rider.policy, attendanceRows, colMap);
-                        result.name = rider.name;
-                        result.policy = rider.policy; // Save policy reference for display/export
-                        verificationResults.push(result);
-                    } catch (innerErr) {
-                        console.error('[核实] 骑手 ' + rider.riderId + ' 核实失败:', innerErr);
-                        console.error('[核实] 政策对象:', rider.policy);
-                        throw new Error('骑手 ' + rider.riderId + ' 核实失败: ' + innerErr.message);
+
+                    // 3. 应发期数 = 历史最大期数 + 1
+                    const expectedPhase=historyMaxPhase+1;
+
+                    // 4. 重复/超期检测
+                    const totalPhases=policy.phases?policy.phases.length:1;
+                    if(expectedPhase>totalPhases){
+                        isDuplicate=true;
+                        warnings.push(`该政策共${totalPhases}期，历史已发到第${historyMaxPhase}期，无更多期数可发`);
                     }
+                    if(history.phaseCounts[expectedPhase]&&history.phaseCounts[expectedPhase]>1){
+                        warnings.push(`第${expectedPhase}期在历史中重复发放${history.phaseCounts[expectedPhase]}次`);
+                    }
+
+                    // 6. 核实考勤数据
+                    const result=verifyRider(riderId,policy,attendanceRows,colMap);
+                    result.name=name;
+                    result.issueDate=issueDate;
+                    result.paymentNote=paymentNote;
+                    result.rewardNote=rewardNote;
+                    result.expectedPhase=expectedPhase;
+                    result.historyMaxPhase=historyMaxPhase;
+                    result.historyDetail=historyDetail;
+                    result.historyPaymentNote=history.paymentNote||'';
+                    result.historyOtherNote=history.otherNote||'';
+                    result.isDuplicate=isDuplicate;
+                    result.warnings=warnings;
+
+                    // 6. 计算应发金额：只发当前这一期的奖励
+                    if(isDuplicate){
+                        result.reward=0;
+                    }else if(!result.passed){
+                        result.reward=0;
+                    }else if(policy.type==='multi_phase'&&expectedPhase<=policy.phases.length){
+                        result.reward=policy.phases[expectedPhase-1].reward;
+                    }else if(policy.type==='single'){
+                        result.reward=policy.rewardAmount||0;
+                    }
+
+                    verificationResults.push(result);
                 }
 
                 displayResults();
                 showSuccess(`核实完成！共处理 ${verificationResults.length} 名骑手`);
-            } catch (err) {
-                console.error('[核实] 完整错误:', err);
-                showError('核实出错: ' + err.message + '。请按F12打开控制台查看详细日志。');
-            } finally {
+            }catch(err){
+                console.error('[核实] 完整错误:',err);
+                showError('核实出错: '+err.message+'。请按F12查看控制台。');
+            }finally{
                 document.getElementById('loadingOverlay').classList.remove('show');
             }
-        }, 100);
-    }
-
-    function findColumnByName(headers, keywords) {
-        for (let i = 0; i < headers.length; i++) {
-            const h = toString(headers[i]).toLowerCase();
-            for (const kw of keywords) {
-                if (h.includes(kw.toLowerCase())) return i;
-            }
-        }
-        return -1;
-    }
-
-    function findColumnIndex(headers, keywords) {
-        for (let i = 0; i < headers.length; i++) {
-            for (const kw of keywords) {
-                if (headers[i].includes(kw)) return i;
-            }
-        }
-        return -1;
+        },100);
     }
 
     // ============================================================
     // Results Display
     // ============================================================
-    function displayResults() {
-        const passCount = verificationResults.filter(r => r.passed).length;
-        const failCount = verificationResults.filter(r => !r.passed).length;
-        const totalReward = verificationResults.reduce((sum, r) => sum + r.reward, 0);
+    function displayResults(){
+        const totalCount=verificationResults.length;
+        const passCount=verificationResults.filter(r=>r.passed&&!r.isDuplicate).length;
+        const failCount=verificationResults.filter(r=>!r.passed).length;
+        const warnCount=verificationResults.filter(r=>r.isDuplicate||r.warnings.length>0).length;
+        const totalReward=verificationResults.reduce((sum,r)=>sum+r.reward,0);
 
-        document.getElementById('passCount').textContent = passCount;
-        document.getElementById('failCount').textContent = failCount;
-        document.getElementById('totalAmount').textContent = `应发合计：¥${totalReward.toLocaleString()}`;
+        document.getElementById('totalCount').textContent=totalCount;
+        document.getElementById('passCount').textContent=passCount;
+        document.getElementById('failCount').textContent=failCount;
+        document.getElementById('warnCount').textContent=warnCount;
 
-        const tbody = document.getElementById('resultsBody');
-        tbody.innerHTML = '';
+        const tbody=document.getElementById('resultsBody');
+        tbody.innerHTML='';
 
-        for (const r of verificationResults) {
-            const tr = document.createElement('tr');
+        for(const r of verificationResults){
+            const tr=document.createElement('tr');
+            const pol=r.policy||POLICIES['default'];
 
-            // Determine monthly standard text (safe access with fallback)
-            let monthStandard = '';
-            const pol = r.policy || POLICIES['default'];
-            if (pol.type === 'multi_phase') {
-                // Show all phases with pass/fail status
-                monthStandard = pol.phases.map((p, i) => {
-                    const met = r.validDays >= p.validDays && r.totalOrders >= p.totalOrders;
-                    return `阶段${i+1}:≥${p.validDays}天/${p.totalOrders}单${met ? '✓' : ''}`;
-                }).join('<br>');
-            } else {
-                monthStandard = `≥${pol.validDaysRequired}天`;
-                if (pol.totalOrdersRequired) {
-                    monthStandard += `/${pol.totalOrdersRequired}单`;
-                }
+            // Daily hours requirement
+            let dailyHours='';
+            if(pol.type==='multi_phase'){
+                const targetPhase=pol.phases[r.expectedPhase-1]||pol.phases[0];
+                dailyHours=targetPhase.dailyHours+'h';
+            }else{
+                dailyHours=pol.minOnlineHours+'h';
             }
 
-            tr.innerHTML = `
+            // Total days required
+            let requiredDays='';
+            if(pol.type==='multi_phase'){
+                const targetPhase=pol.phases[r.expectedPhase-1]||pol.phases[0];
+                requiredDays=targetPhase.validDays+'天';
+            }else{
+                requiredDays=pol.validDaysRequired+'天';
+            }
+
+            // Total orders required
+            let requiredOrders='';
+            if(pol.type==='multi_phase'){
+                const targetPhase=pol.phases[r.expectedPhase-1]||pol.phases[0];
+                requiredOrders=targetPhase.totalOrders+'单';
+            }else if(pol.totalOrdersRequired){
+                requiredOrders=pol.totalOrdersRequired+'单';
+            }else{
+                requiredOrders='-';
+            }
+
+            // History phase detail
+            const historyDetail=r.historyDetail||'无';
+
+            // Status badge
+            let statusBadge='';
+            if(r.isDuplicate){
+                statusBadge='<span class="badge badge-warn">重复</span>';
+                tr.classList.add('warning-row');
+            }else if(r.passed){
+                statusBadge='<span class="badge badge-pass">达标</span>';
+            }else{
+                statusBadge='<span class="badge badge-fail">不达标</span>';
+            }
+
+            // Warnings tooltip
+            const warningText=r.warnings.length>0?r.warnings.join('; '):'';
+
+            // Policy display name with phase (e.g., "潍坊-人资1300（第2期）")
+            let policyDisplayName=r.policyName;
+            if(pol.type==='multi_phase'){
+                policyDisplayName+=`（第${r.expectedPhase}期）`;
+            }else if(pol.rewardAmount>0){
+                policyDisplayName+=`（一次性）`;
+            }
+
+            tr.innerHTML=`
                 <td>${r.riderId}</td>
-                <td>${r.name || '-'}</td>
-                <td style="font-size:12px;">${r.policyName}</td>
+                <td>${r.name||'-'}</td>
+                <td>${r.issueDate||'-'}</td>
+                <td>${r.paymentNote||'-'}</td>
+                <td title="${r.rewardNote}">${r.rewardNote||'-'}</td>
+                <td style="font-size:11px;">${policyDisplayName}</td>
+                <td>第${r.expectedPhase}期</td>
+                <td>${r.historyMaxPhase>0?'第'+r.historyMaxPhase+'期':'无'}</td>
+                <td style="font-size:11px;">${historyDetail}</td>
+                <td>${dailyHours}</td>
+                <td>${requiredDays}</td>
+                <td>${requiredOrders}</td>
                 <td>${r.validDays}天</td>
                 <td>${r.totalOrders}单</td>
-                <td style="font-size:11px;text-align:left;">${monthStandard}</td>
-                <td><span class="badge ${r.passed ? 'badge-pass' : 'badge-fail'}">${r.passed ? '达标' : '不达标'}</span></td>
-                <td>${r.reward > 0 ? '¥' + r.reward : '-'}</td>
+                <td>${statusBadge}</td>
+                <td>${r.reward>0?'¥'+r.reward:'-'}</td>
+                <td style="font-size:11px;color:#dc3545;" title="${warningText}">${warningText?'⚠️':''}</td>
             `;
             tbody.appendChild(tr);
         }
 
-        document.getElementById('resultSection').classList.add('show');
+        document.getElementById('resultSection').style.display='block';
     }
 
     // ============================================================
     // Export Functions
     // ============================================================
-    function exportResults(format) {
-        if (verificationResults.length === 0) {
-            showError('没有可导出的数据');
-            return;
-        }
-
-        if (format === 'xlsx') {
-            exportToXLSX();
-        } else if (format === 'csv') {
-            exportToCSV();
-        }
+    function exportResults(format){
+        if(verificationResults.length===0){showError('没有可导出的数据');return;}
+        if(format==='xlsx') exportToXLSX();
+        else if(format==='csv') exportToCSV();
     }
 
-    function exportToXLSX() {
-        const headers = ['骑手ID', '姓名', '政策', '有效天数', '总单量', '月标准', '判定', '应发'];
-        const data = [headers];
+    function exportToXLSX(){
+        const wb=XLSX.utils.book_new();
 
-        for (const r of verificationResults) {
-            let monthStandard = '';
-            const pol = r.policy || POLICIES['default'];
-            if (pol.type === 'multi_phase') {
-                monthStandard = pol.phases.map((p, i) => {
-                    const met = r.validDays >= p.validDays && r.totalOrders >= p.totalOrders;
-                    return `阶段${i+1}:≥${p.validDays}天/${p.totalOrders}单${met ? '✓' : ''}`;
-                }).join('; ');
-            } else {
-                monthStandard = `≥${pol.validDaysRequired}天`;
-                if (pol.totalOrdersRequired) {
-                    monthStandard += `/${pol.totalOrdersRequired}单`;
+        // Sheet 1: 核实结果汇总
+        const headers=['ID','姓名','入职日期','发放备注','奖励备注说明','政策','应发期数','历史已发期数','历史期数明细','历史发放备注','历史其它备注','每日需时','需百天数','需总单量','有效天数','总单量','达标','应发金额','状态'];
+        const data=[headers];
+        for(const r of verificationResults){
+            const pol=r.policy||POLICIES['default'];
+            let dailyHours='',requiredDays='',requiredOrders='';
+            if(pol.type==='multi_phase'){const tp=pol.phases[r.expectedPhase-1]||pol.phases[0];dailyHours=tp.dailyHours+'h';requiredDays=tp.validDays+'天';requiredOrders=tp.totalOrders+'单';}
+            else{dailyHours=pol.minOnlineHours+'h';requiredDays=pol.validDaysRequired+'天';requiredOrders=pol.totalOrdersRequired?pol.totalOrdersRequired+'单':'-';}
+            const status=r.isDuplicate?'重复':(r.passed?'达标':'不达标');
+            data.push([r.riderId,r.name||'',r.issueDate||'',r.paymentNote||'',r.rewardNote||'',r.policyName,'第'+r.expectedPhase+'期',r.historyMaxPhase>0?'第'+r.historyMaxPhase+'期':'无',r.historyDetail,r.historyPaymentNote||'',r.historyOtherNote||'',dailyHours,requiredDays,requiredOrders,r.validDays+'天',r.validOrders+'单',status,r.reward>0?r.reward:0,r.warnings.join('; ')]);
+        }
+        const ws1=XLSX.utils.aoa_to_sheet(data);
+        ws1['!cols']=[{wch:15},{wch:10},{wch:12},{wch:15},{wch:20},{wch:18},{wch:10},{wch:12},{wch:15},{wch:20},{wch:15},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:8},{wch:10},{wch:30}];
+        // 表头染蓝色
+        for(let c=0;c<headers.length;c++){
+            const cell=XLSX.utils.encode_cell({r:0,c:c});
+            if(ws1[cell]){ws1[cell].s={fill:{fgColor:{rgb:'FF4472C4'}},font:{color:{rgb:'FFFFFFFF'},bold:true}};}
+        }
+        XLSX.utils.book_append_sheet(wb,ws1,'核实结果');
+
+        // Sheet 2: 逐日明细
+        const colMap=getColMap();
+        const attendanceRows=attendanceData?attendanceData.slice(1):[];
+        const detailHeaders=['骑手ID','姓名','政策','应发期数','日期','完单量','有效时长','单量达标','时长达标','有效出勤','不达标原因'];
+        const detailData=[detailHeaders];
+
+        for(const r of verificationResults){
+            const pol=r.policy||POLICIES['default'];
+            let minHours=pol.minOnlineHours||6.5, minDailyOrders=pol.minDailyOrders||16;
+            if(pol.type==='multi_phase'){const tp=pol.phases[r.expectedPhase-1]||pol.phases[0];minHours=tp.dailyHours;minDailyOrders=tp.dailyOrders;}
+
+            for(const row of attendanceRows){
+                const rowRiderId=toString(row[colMap.riderId]);
+                if(rowRiderId!==r.riderId) continue;
+                const period=row[colMap.period];
+                const orders=toNumber(row[colMap.orders]);
+                const hours=getHoursForRow(row,colMap,period);
+                const dateVal=row[colMap.date];
+                const dateStr=dateVal instanceof Date?formatDate(dateVal):toString(dateVal);
+
+                // Check if this day is valid
+                let orderPass=true, hoursPass=true, validAttendance=true;
+                const reasons=[];
+                if(isFullDay(period)){
+                    if(orders<minDailyOrders){orderPass=false;reasons.push('单量'+orders+'<'+minDailyOrders);}
+                    if(hours<minHours){hoursPass=false;reasons.push('时长'+hours.toFixed(1)+'h<'+minHours+'h');}
+                    validAttendance=orderPass&&hoursPass;
+                }else if(isLunchPeak(period)){
+                    const lunchMinH=pol.lunchMinHours||2.5;
+                    const lunchMinO=pol.lunchMinOrders||4;
+                    if(hours<lunchMinH){hoursPass=false;reasons.push('午高峰时长'+hours.toFixed(1)+'h<'+lunchMinH+'h');}
+                    if(orders<lunchMinO){orderPass=false;reasons.push('午高峰单量'+orders+'<'+lunchMinO);}
+                }else if(isDinnerPeak(period)){
+                    const dinnerMinH=pol.dinnerMinHours||2;
+                    if(hours<dinnerMinH){hoursPass=false;reasons.push('晚高峰时长'+hours.toFixed(1)+'h<'+dinnerMinH+'h');}
                 }
-            }
 
-            data.push([
-                r.riderId,
-                r.name || '',
-                r.policyName,
-                r.validDays + '天',
-                r.totalOrders + '单',
-                monthStandard,
-                r.passed ? '达标' : '不达标',
-                r.reward > 0 ? r.reward : 0
-            ]);
+                detailData.push([
+                    r.riderId,r.name||'',r.policyName,'第'+r.expectedPhase+'期',
+                    dateStr,orders,hours.toFixed(2)+'h',
+                    orderPass?'是':'否',hoursPass?'是':'否',validAttendance?'是':'否',
+                    reasons.join(';')
+                ]);
+            }
         }
 
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.aoa_to_sheet(data);
+        const ws2=XLSX.utils.aoa_to_sheet(detailData);
+        ws2['!cols']=[{wch:15},{wch:10},{wch:18},{wch:10},{wch:14},{wch:10},{wch:12},{wch:10},{wch:10},{wch:10},{wch:30}];
+        XLSX.utils.book_append_sheet(wb,ws2,'逐日明细');
 
-        // Set column widths
-        ws['!cols'] = [
-            { wch: 15 }, { wch: 10 }, { wch: 30 }, { wch: 10 },
-            { wch: 10 }, { wch: 18 }, { wch: 8 }, { wch: 10 }
-        ];
-
-        XLSX.utils.book_append_sheet(wb, ws, '核实结果');
-
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-        XLSX.writeFile(wb, `核实结果_${timestamp}.xlsx`);
-        showSuccess('Excel 文件已导出');
+        const ts=new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
+        XLSX.writeFile(wb,`核实结果_${ts}.xlsx`);
+        showSuccess('Excel 文件已导出（含核实结果+逐日明细）');
     }
 
-    function exportToCSV() {
-        let csv = '\ufeff'; // UTF-8 BOM
-        csv += '骑手ID,姓名,政策,有效天数,总单量,月标准,判定,应发\n';
-
-        for (const r of verificationResults) {
-            let monthStandard = '';
-            const pol = r.policy || POLICIES['default'];
-            if (pol.type === 'multi_phase') {
-                monthStandard = pol.phases.map((p, i) => {
-                    const met = r.validDays >= p.validDays && r.totalOrders >= p.totalOrders;
-                    return `阶段${i+1}:≥${p.validDays}天/${p.totalOrders}单${met ? '✓' : ''}`;
-                }).join('; ');
-            } else {
-                monthStandard = `≥${pol.validDaysRequired}天`;
-                if (pol.totalOrdersRequired) {
-                    monthStandard += `/${pol.totalOrdersRequired}单`;
-                }
-            }
-
-            const fields = [
-                r.riderId,
-                r.name || '',
-                r.policyName,
-                r.validDays + '天',
-                r.totalOrders + '单',
-                monthStandard,
-                r.passed ? '达标' : '不达标',
-                r.reward > 0 ? r.reward : 0
-            ];
-
-            csv += fields.map(f => `"${String(f).replace(/"/g, '""')}"`).join(',') + '\n';
+    function exportToCSV(){
+        let csv='\ufeff';
+        csv+='ID,姓名,入职日期,发放备注,奖励备注说明,政策,应发期数,历史已发期数,历史期数明细,每日需时,需百天数,需总单量,有效天数,总单量,达标,应发金额,状态\n';
+        for(const r of verificationResults){
+            const pol=r.policy||POLICIES['default'];
+            let dailyHours='',requiredDays='',requiredOrders='';
+            if(pol.type==='multi_phase'){const tp=pol.phases[r.expectedPhase-1]||pol.phases[0];dailyHours=tp.dailyHours+'h';requiredDays=tp.validDays+'天';requiredOrders=tp.totalOrders+'单';}
+            else{dailyHours=pol.minOnlineHours+'h';requiredDays=pol.validDaysRequired+'天';requiredOrders=pol.totalOrdersRequired?pol.totalOrdersRequired+'单':'-';}
+            const status=r.isDuplicate?'重复':(r.passed?'达标':'不达标');
+            const fields=[r.riderId,r.name||'',r.issueDate||'',r.paymentNote||'',r.rewardNote||'',r.policyName,'第'+r.expectedPhase+'期',r.historyMaxPhase>0?'第'+r.historyMaxPhase+'期':'无',r.historyDetail,dailyHours,requiredDays,requiredOrders,r.validDays+'天',r.totalOrders+'单',status,r.reward>0?r.reward:0,r.warnings.join('; ')];
+            csv+=fields.map(f=>'"'+String(f).replace(/"/g,'""')+'"').join(',')+'\n';
         }
-
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-        a.download = `核实结果_${timestamp}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+        const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');a.href=url;
+        const ts=new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
+        a.download=`核实结果_${ts}.csv`;
+        document.body.appendChild(a);a.click();URL.revokeObjectURL(url);document.body.removeChild(a);
         showSuccess('CSV 文件已导出');
     }
     </script>
