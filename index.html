@@ -398,15 +398,18 @@
     function refreshPolicyList(){
         const container=document.getElementById('policyList');
         if(!container) return;
-        // 按年份+月份降序排列
-        const sorted=Object.entries(POLICIES).sort((a,b)=>{
-            const pa=a[1],pb=b[1];
-            const ya=pa.year||0,yb=pb.year||0;
-            if(yb!==ya) return yb-ya;
-            const ma=pa.months&&pa.months.length?Math.max(...pa.months):0;
-            const mb=pb.months&&pb.months.length?Math.max(...pb.months):0;
-            return mb-ma;
-        });
+        const currentCity=document.getElementById('citySelector').value;
+        // 按年份+月份降序排列，过滤当前城市
+        const sorted=Object.entries(POLICIES)
+            .filter(([code,policy])=>policy&&policy.type&&(policy.city===currentCity||!policy.city))
+            .sort((a,b)=>{
+                const pa=a[1],pb=b[1];
+                const ya=pa.year||0,yb=pb.year||0;
+                if(yb!==ya) return yb-ya;
+                const ma=pa.months&&pa.months.length?Math.max(...pa.months):0;
+                const mb=pb.months&&pb.months.length?Math.max(...pb.months):0;
+                return mb-ma;
+            });
         let html='';
         for(const[code,policy]of sorted){
             const cityName=CITY_NAMES[policy.city]||policy.city||'未知';
