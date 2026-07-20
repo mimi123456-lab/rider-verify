@@ -1577,9 +1577,52 @@
                         }
                     }
 
-                    // 1. 根据入职日期、站点、推荐人自动匹配政策
-                    let policy=matchPolicyByRider(issueDate,station,referrerType,riderCity);
-                    console.log('[核实] 骑手'+riderId+'('+name+') 入职:'+issueDate+' 站点:'+station+' 城市:'+riderCity+' 推荐人:'+referrerType+' → 匹配政策:'+policy.name);
+                    // 1. 优先从发放备注识别政策类型和金额
+                    let policy=null;
+                    const paymentLower=paymentNote.toLowerCase();
+
+                    // 从发放备注提取金额
+                    const amountMatch=paymentNote.match(/(\d{3,4})/);
+                    const amount=amountMatch?parseInt(amountMatch[1]):0;
+                    // 从发放备注提取期数
+                    const cnMap={'一':1,'二':2,'两':2,'三':3,'四':4,'五':5,'六':6};
+                    const phaseMatch=paymentNote.match(/第?([一二两三四五六\d])\s*期/);
+                    const phaseNum=phaseMatch?(cnMap[phaseMatch[1]]||parseInt(phaseMatch[1])):0;
+                    // 从发放备注提取推荐人类型
+                    const isNeitui=paymentLower.includes('内推');
+                    const isZhongjie=paymentLower.includes('中介')||paymentLower.includes('人资');
+
+                    // 从奖励备注说明提取月份
+                    const rewardLower=rewardNote.toLowerCase();
+                    const monthMatch=rewardNote.match(/(\d+)月/);
+                    const joinMonthNum=monthMatch?parseInt(monthMatch[1]):0;
+
+                    // 根据发放备注的金额+类型匹配政策
+                    if(amount>0){
+                        for(const[code,p]of Object.entries(POLICIES)){
+                            if(!p||!p.type) continue;
+                            // 城市匹配
+                            if(p.city&&p.city!==riderCity) continue;
+                            // 金额匹配
+                            if(p.rewardAmount&&p.rewardAmount!==amount) continue;
+                            // 推荐人类型匹配
+                            if(p.referrerType&&p.referrerType!=='all'){
+                                if(isNeitui&&p.referrerType!=='内推') continue;
+                                if(isZhongjie&&p.referrerType!=='中介') continue;
+                            }
+                            // 月份匹配（空数组=不限）
+                            if(p.months&&p.months.length>0&&joinMonthNum&&!p.months.includes(joinMonthNum)) continue;
+                            policy=p;
+                            break;
+                        }
+                    }
+
+                    // 如果发放备注没匹配到，用入职日期+站点+推荐人匹配
+                    if(!policy){
+                        policy=matchPolicyByRider(issueDate,station,referrerType,riderCity);
+                    }
+
+                    console.log('[核实] 骑手'+riderId+'('+name+') 发放备注:"'+paymentNote+'" 金额:'+amount+' 类型:'+(isNeitui?'内推':isZhongjie?'中介':'未知')+' → 匹配政策:'+(policy?policy.name:'未找到'));
 
                     // 2. 从历史发放记录查该收款人已发到第几期
                     const history=getHistorySummary(referrerId);
