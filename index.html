@@ -239,9 +239,12 @@
             const resp = await fetch('policies.json?t=' + Date.now());
             if (!resp.ok) throw new Error('HTTP ' + resp.status);
             const remote = await resp.json();
-            REMOTE_POLICY_CODES = new Set(Object.keys(remote));
+            // 只遍历policies键，跳过version/updateNote
+            const policies = remote.policies || remote;
+            REMOTE_POLICY_CODES = new Set(Object.keys(policies));
             let loadedCount = 0;
-            for (const [code, policy] of Object.entries(remote)) {
+            for (const [code, policy] of Object.entries(policies)) {
+                if (!policy || !policy.type) continue; // 跳过非政策条目
                 POLICIES[code] = policy;
                 // 更新城市政策映射
                 if (policy.city && !CITY_POLICIES[policy.city]) CITY_POLICIES[policy.city] = [];
@@ -250,13 +253,12 @@
                 }
                 // 更新城市名称
                 if (policy.city && !CITY_NAMES[policy.city]) {
-                    // 尝试从已知城市名推断
-                    const knownCities = {qingdao:'青岛',weifang:'潍坊',shanghai:'上海'};
+                    const knownCities = {qingdao:'青岛',weifang:'潍坊',shanghai:'上海',zibo:'淄博',shijiazhuang:'石家庄',fuzhou:'福州',beijing:'北京',linyi:'临沂',jinan:'济南'};
                     CITY_NAMES[policy.city] = knownCities[policy.city] || policy.city;
                 }
                 loadedCount++;
             }
-            console.log('[政策] 已加载远程', loadedCount, '套政策，codes:', [...REMOTE_POLICY_CODES].join(','));
+            console.log('[政策] 已加载远程', loadedCount, '套政策');
         } catch(e) {
             console.warn('[政策] 远程加载失败，使用内置政策:', e.message);
             // 远程加载失败时，以内置硬编码的 code 作为 REMOTE_POLICY_CODES
